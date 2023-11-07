@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static',filename='login.css')}}">
+    <link rel="shortcut icon" href="img.jpg" type="image/x-icon">
+    <title>Smart CCTV</title>
+</head>
+
+<body>
+    <section>
+        <div class="form-box">
+            <div class="form-value">
+                <form method="post" action="{{url_for('login')}}">
+                    <h2><ion-icon name="aperture-outline"></ion-icon>Smart CCTV Log In</h2>
+                    {% if mesage is defined and mesage %}
+			    <div class="alert alert-warning">{{mesage }}</div>
+		             {% endif %}
+                    <div class="inputbox">
+                        <ion-icon name="mail-outline"></ion-icon>
+                        <input type="email" name="email" placeholder="Email">
+                    </div>
+                    <div class="inputbox">
+                        <ion-icon name="lock-closed-outline"></ion-icon>
+                        <input type="password" name="password" placeholder="Password">
+                    </div>
+                    <div class="forget">
+                        <label for=""><input type="checkbox"> Remember Me <a href="#"></a></label>
+                    </div>
+
+                    <button type="submit">Login</button>
+
+                    <div class="register">
+                        <p>Don't Have Account? <a href="{{url_for('register')}}">Register</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>
