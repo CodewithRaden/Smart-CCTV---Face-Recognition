@@ -1,9 +1,11 @@
 from flask import Flask, render_template,Response,request, redirect, url_for, session
-from flask_bcrypt import Bcrypt  # Import Flask-Bcrypt
+from flask_bcrypt import Bcrypt 
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 import cv2
+# from threading import Thread
+# from motion_detection import motion_detection,get_motion_events
   
   
 app = Flask(__name__)
@@ -17,6 +19,13 @@ app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'muak_db'
   
 mysql = MySQL(app)
+
+def before_request():
+    allowed_routes = ['login', 'register']
+
+    
+    if 'loggedin' not in session and request.endpoint not in allowed_routes:
+        return redirect(url_for('login'))
   
 @app.route('/')
 @app.route('/login', methods =['GET', 'POST'])
@@ -46,7 +55,7 @@ def logout():
     session.pop('email', None)
     return redirect(url_for('login'))
   
-@app.route('/register', methods =['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     message = ''
     if request.method == 'POST' and 'name' in request.form and 'password' in request.form and 'email' in request.form:
@@ -55,7 +64,7 @@ def register():
         email = request.form['email']
 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM user WHERE email = %s', (email, ))
+        cursor.execute('SELECT * FROM user WHERE email = %s', (email,))
         account = cursor.fetchone()
 
         if account:
@@ -67,12 +76,22 @@ def register():
         else:
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-            cursor.execute('INSERT INTO user VALUES (NULL, %s, %s, %s)', (user_name, email, hashed_password))
+            cursor.execute('INSERT INTO user (name, email, password) VALUES (%s, %s, %s)', (user_name, email, hashed_password))
             mysql.connection.commit()
             message = 'You have successfully registered!'
     elif request.method == 'POST':
         message = 'Please fill out the form!'
     return render_template('register.html', message=message)
+
+@app.route('/profile')
+def profile():
+    if 'loggedin' in session:
+        user_id = session['userid']
+        user_name = session['name']
+        user_email = session['email']
+        return render_template('profile.html', user_id=user_id, user_name=user_name, user_email=user_email)
+    else:
+        return redirect(url_for('login'))
 
 
 camera = cv2.VideoCapture(0)
@@ -89,17 +108,37 @@ def generate_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         
-@app.route('/home.html')
+@app.route('/home')
 def home():
-    return render_template('home.html')
+     if 'loggedin' in session:
+        return render_template('home.html')
+     else:
+        return redirect(url_for('login'))
         
-@app.route('/livestream.html')
+@app.route('/livestream')
 def live():
-    return render_template('livestream.html')
+    if 'loggedin' in session:
+        # motion_thread = Thread(target=motion_detection, args=('record_data/',))
+        # motion_thread.start()
+        return render_template('livestream.html')
+    else:
+        return redirect(url_for('login'))
         
 @app.route('/videosource')
 def video():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    if 'loggedin' in session:
+        return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        return redirect(url_for('login'))
     
+# @app.route('/history')
+# def history():
+#     if 'loggedin' in session:
+#         events = get_motion_events()
+
+#         return render_template('recorded_data.html', events=events)
+#     else:
+#         return redirect(url_for('login')) 
+
 if __name__ == "__main__":
     app.run(debug=True)

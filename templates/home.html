@@ -7,10 +7,13 @@
 </head>
 <body>
     <h1>Home</h1>
-    <a href="livestream.html">
+    <a href="{{url_for('live')}}">
         <button>Clik For Life</button>
     </a>
     <br>
+    <a href="{{url_for('profile')}}">
+        <button>Clik To See Ur Profile</button>
+    </a>
     <br>
     <a href="{{url_for('logout')}}">
         <button>Logout</button>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Events History</title>
+</head>
+<body>
+    <h1>Motion Events History</h1>
+
+    {% if events %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Filename</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>{{ event.id }}</td>
+                        <td>{{ event.filename }}</td>
+                        <td>{{ event.date }}</td>
+                        <td>{{ event.time }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No motion events found.</p>
+    {% endif %}
+    <a href="{{url_for('home')}}">
+        <button>Home</button>
+    </a>
+</body>
+</html>
