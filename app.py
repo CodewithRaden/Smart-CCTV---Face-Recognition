@@ -57,11 +57,17 @@ def logout():
   
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    message = ''
-    if request.method == 'POST' and 'name' in request.form and 'password' in request.form and 'email' in request.form:
+    message = ''    
+    if request.method == 'POST':
         user_name = request.form['name']
         password = request.form['password']
         email = request.form['email']
+        admin_key = request.form['admin_key'] 
+
+        
+        if admin_key != 'kel1pbl': #Ini key admin
+            message = 'Invalid admin key!'
+            return render_template('register.html', message=message)
 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM user WHERE email = %s', (email,))
@@ -79,9 +85,12 @@ def register():
             cursor.execute('INSERT INTO user (name, email, password) VALUES (%s, %s, %s)', (user_name, email, hashed_password))
             mysql.connection.commit()
             message = 'You have successfully registered!'
+
     elif request.method == 'POST':
         message = 'Please fill out the form!'
+
     return render_template('register.html', message=message)
+
 
 @app.route('/profile')
 def profile():
