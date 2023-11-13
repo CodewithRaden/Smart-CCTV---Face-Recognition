@@ -14,7 +14,7 @@ app = Flask(__name__)
 bcrypt = Bcrypt(app)  
   
 app.secret_key = 'pantek'
-  
+
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
