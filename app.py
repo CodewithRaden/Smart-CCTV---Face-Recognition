@@ -8,7 +8,7 @@ import numpy as np
 import os
 # from threading import Thread
 # from motion_detection import motion_detection,get_motion_events
-  
+#berubah
   
 app = Flask(__name__)
 bcrypt = Bcrypt(app)  
