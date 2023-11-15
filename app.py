@@ -6,8 +6,6 @@ import re
 import cv2
 import numpy as np
 import os
-# from threading import Thread
-# from motion_detection import motion_detection,get_motion_events
   
   
 app = Flask(__name__)
@@ -206,8 +204,6 @@ def home():
 @app.route('/livestream')
 def live():
     if 'loggedin' in session:
-        # motion_thread = Thread(target=motion_detection, args=('record_data/',))
-        # motion_thread.start()
         return render_template('livestream.html')
     else:
         return redirect(url_for('login'))
@@ -218,16 +214,6 @@ def video():
         return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
     else:
         return redirect(url_for('login'))
-    
-         
-# @app.route('/history')
-# def history():
-#     if 'loggedin' in session:
-#         events = get_motion_events()
-
-#         return render_template('recorded_data.html', events=events)
-#     else:
-#         return redirect(url_for('login')) 
 
 if __name__ == "__main__":
     app.run(debug=True)
