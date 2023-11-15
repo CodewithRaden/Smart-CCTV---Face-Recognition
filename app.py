@@ -1,43 +1,69 @@
-from flask import Flask, render_template,Response,request, redirect, url_for, session
-from flask_bcrypt import Bcrypt 
+from flask import Flask, render_template, Response, request, redirect, url_for, session
+from flask_bcrypt import Bcrypt
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 import cv2
 import numpy as np
 import os
-  
-  
+
 app = Flask(__name__)
-bcrypt = Bcrypt(app)  
-  
+bcrypt = Bcrypt(app)
+
 app.secret_key = 'pantek'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'muak_db'
-  
+
 mysql = MySQL(app)
+
+
+class User:
+    def __init__(self, name, email, password):
+        self.name = name
+        self.email = email
+        self.password = password
+
+    def save_to_db(self):
+        hashed_password = bcrypt.generate_password_hash(self.password).decode('utf-8')
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('INSERT INTO user (name, email, password) VALUES (%s, %s, %s)',
+                       (self.name, self.email, hashed_password))
+        mysql.connection.commit()
+
+
+class Database:
+    @staticmethod
+    def check_user(email, password):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM user WHERE email = %s', (email,))
+        user = cursor.fetchone()
+
+        if user and bcrypt.check_password_hash(user['password'], password):
+            return user
+        else:
+            return None
+
 
 def before_request():
     allowed_routes = ['login', 'register']
 
-    
     if 'loggedin' not in session and request.endpoint not in allowed_routes:
         return redirect(url_for('login'))
-  
+
+
 @app.route('/')
-@app.route('/login', methods =['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     message = ''
     if request.method == 'POST' and 'email' in request.form and 'password' in request.form:
         email = request.form['email']
         password = request.form['password']
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM user WHERE email = %s', (email,))
-        user = cursor.fetchone()
-        if user and bcrypt.check_password_hash(user['password'], password):
+
+        user = Database.check_user(email, password)
+        if user:
             session['loggedin'] = True
             session['userid'] = user['userid']
             session['name'] = user['name']
@@ -47,43 +73,39 @@ def login():
         else:
             message = 'Email or Password Invalid!'
     return render_template('login.html', message=message)
-  
+
+
 @app.route('/logout')
 def logout():
     session.pop('loggedin', None)
     session.pop('userid', None)
     session.pop('email', None)
     return redirect(url_for('login'))
-  
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    message = ''    
+    message = ''
     if request.method == 'POST':
         user_name = request.form['name']
         password = request.form['password']
         email = request.form['email']
-        admin_key = request.form['admin_key'] 
+        admin_key = request.form['admin_key']
 
-        
-        if admin_key != 'kel1pbl': #Ini key admin
+        if admin_key != 'kel1pbl':  # Ini key admin
             message = 'Invalid admin key!'
             return render_template('register.html', message=message)
 
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM user WHERE email = %s', (email,))
-        account = cursor.fetchone()
-
-        if account:
+        existing_user = Database.check_user(email, password)
+        if existing_user:
             message = 'Account already exists!'
         elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
             message = 'Invalid email address!'
         elif not user_name or not password or not email:
             message = 'Please fill out the form!'
         else:
-            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-
-            cursor.execute('INSERT INTO user (name, email, password) VALUES (%s, %s, %s)', (user_name, email, hashed_password))
-            mysql.connection.commit()
+            new_user = User(user_name, email, password)
+            new_user.save_to_db()
             message = 'You have successfully registered!'
 
     elif request.method == 'POST':
