@@ -1,6 +1,6 @@
 # Smart CCTV Project-Based Learning
 
-A collaborative project by the Smart CCTV Group. This project focuses on implementing smart features in a CCTV system for enhanced surveillance.
+Kami diberikan tugas PBL membuat smart cctv.
 
 ## Project Team 👥
 
@@ -13,28 +13,30 @@ A collaborative project by the Smart CCTV Group. This project focuses on impleme
 
 ## Project Status 🚀
 
-This project is currently in development. Feel free to check out our progress and contribute!
+This project is currently in development. Feel free to check out our progress.
 
 ## Badges
-[![Build Status](https://travis-ci.org/your-username/your-repo.svg?branch=master)](https://travis-ci.org/your-username/your-repo)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Google Chrome](https://img.shields.io/badge/Google%20Chrome-4285F4?style=for-the-badge&logo=GoogleChrome&logoColor=white)
+![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
+![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white)
+![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
+![OpenCV](https://img.shields.io/badge/opencv-%23white.svg?style=for-the-badge&logo=opencv&logoColor=white)
+![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
 
-## Project Screenshots 📷
+## Uses Pogramming Language 💬
 
-![Screenshot 1](screenshots/screenshot1.png)
-![Screenshot 2](screenshots/screenshot2.png)
+![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+
 
 ## Live Demo 🌐
 
-Check out the live demo [here](https://your-live-demo-link.com).
+Comming Soon.
 
 ## Installation and Setup 🛠️
 
 1. Clone the repository.
-2. Run `npm install` to install dependencies.
-3. Configure the settings in `config.js`.
-4. Run the application using `npm start`.
+2. Run App.py.
+3. U all set.
 
-## Contributing 🤝
-
-We welcome contributions! Please follow our [contribution guidelines](CONTRIBUTING.md).
