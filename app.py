@@ -125,7 +125,7 @@ def profile():
         return redirect(url_for('login'))
 
 
-camera = cv2.VideoCapture(0)
+camera = cv2.VideoCapture(1)
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 dataset_path = "face_data/"
 face_data = []
@@ -236,6 +236,8 @@ def video():
         return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
     else:
         return redirect(url_for('login'))
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
