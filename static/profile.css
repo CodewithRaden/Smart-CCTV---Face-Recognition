@@ -1,10 +1,63 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
-
+body, h1, h2, p, button {
+    margin: 0;
+    padding: 0;
 }
 
- h1 {
-    text-align: center;
-    color: #333333;
+body {
+    font-family: Arial, sans-serif;
+    color: #333;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px;
+    background-color: #ffffff;
+    border-radius: 100px;
+    box-shadow: 0 0 30px rgba(19, 61, 120, 0.767);
+    text-align: center; /* Menengahkan teks dalam kontainer */
+    box-sizing:border-box;
+    margin: 50px;
+}
+
+
+h1 {
+    color: #393f3e;
+    font-size: 30px;
+}
+
+h2 {
+    color: #393f3e;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+
+/* Style the user details */
+h2 {
+    margin-bottom: 1px;
+    text-align: justify;
+}
+
+/* Style the user image */
+
+
+
+/* Style the home button */
+a {
+    text-decoration: none;
+}
+
+button {
+    margin-top: 40px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3082b8;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #014e6e;
 }

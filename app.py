@@ -69,7 +69,7 @@ def login():
             session['name'] = user['name']
             session['email'] = user['email']
             message = 'Logged in successfully!'
-            return render_template('home.html', message=message)
+            return render_template('index.html', message=message)
         else:
             message = 'Email or Password Invalid!'
     return render_template('login.html', message=message)
@@ -125,7 +125,7 @@ def profile():
         return redirect(url_for('login'))
 
 
-camera = cv2.VideoCapture(1)
+camera = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 dataset_path = "face_data/"
 face_data = []
@@ -219,7 +219,7 @@ def generate_frames():
 @app.route('/home')
 def home():
      if 'loggedin' in session:
-        return render_template('home.html')
+        return render_template('index.html')
      else:
         return redirect(url_for('login'))
         
@@ -237,7 +237,27 @@ def video():
     else:
         return redirect(url_for('login'))
 
+@app.route('/manual')
+def manual():
+    if 'loggedin' in session:
+        return render_template("manual.html")
+    else:
+        return redirect(url_for('login'))
+    
+@app.route('/coming')
+def coming():
+    if 'loggedin' in session:
+        return render_template('Comingsoon.html')
+    else:
+        return redirect(url_for('login'))
 
+
+@app.route('/coming_record')
+def coming_record():
+    if 'loggedin' in session:
+        return render_template('Comingsoon_record.html')
+    else:
+        return redirect(url_for('login'))
 
 if __name__ == "__main__":
     app.run(debug=True)
