@@ -1,39 +1,53 @@
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>User Registeration Form</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">              
-</head>
-<body>
-<div class="container">
-	<h2>User Registration</h2>
-	<form action="{{ url_for('register')}}" method="post">
-        {% if message is defined and message %}
-			<div class="alert alert-warning">{{ message }}</div>
-		{% endif %}
-		<div class="form-group">
-			<label for="name">Name:</label>
-			<input type="text" class="form-control" id="name" name="name" placeholder="Enter name" name="name">
-		</div>
-		<div class="form-group">
-			<label for="email">Email:</label>
-			<input type="email" class="form-control" id="email" name="email" placeholder="Enter email" name="email">
-		</div>
-		<div class="form-group">
-			<label for="pwd">Password:</label>
-			<input type="password" class="form-control" id="password" name="password" placeholder="Enter password" name="pswd">
-		</div>
+<!DOCTYPE html>
+<html lang="en">
 
-		<div class="form-group">
-			<label for="admin_key">Admin Key:</label>
-			<input type="password" class="form-control" id="admin_key" name="admin_key" placeholder="Enter admin key" required>
-		</div>		
-		    
-		<button type="submit" class="btn btn-primary">Register</button>
-		<p class="bottom">Already have an account?  <a class="bottom" href="{{url_for('login')}}"> Login here</a></p>
-		<p class="bottom">Don't have admin key?  <a class="bottom" href="https://wa.link/vf1yap"> Clik here</a></p>
-	</form>
-</div>        
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Smart CCTV Registration</title>
+	<link rel="stylesheet" href="{{url_for('static',filename='registration.css')}}">
+	<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+	<div class="wrapper">
+		<form action="{{ url_for('register')}}" method="post">
+			{% if message is defined and message %}
+			<div class="error">{{ message }}</div>
+			{% endif %}
+			<div class="button-logout-container">
+				<button type="button" class="btn-logout"><a href="{{url_for('login')}}">Go Back</a></button>
+			</div>
+			<h1>Smart CCTV Registration </h1>
+
+			<div class="input-box">
+				<div class="input-field">
+					<input type="email" placeholder="Email" name="email" id="email" required>
+					<i class='bx bxs-envelope'></i>
+				</div>
+
+				<div class="input-field">
+					<input type="text" placeholder="Username" name="name" id="name" required>
+					<i class='bx bx-user'></i>
+				</div>
+
+
+				<div class="input-field">
+					<input type="password" placeholder="Password" name="password" id="password" required>
+					<i class='bx bxs-key'></i>
+				</div>
+
+				<div class="input-field">
+					<input type="password" placeholder="Admin Key" name="admin_key" id="admin_key" required>
+					<i class='bx bx-id-card'></i>
+				</div>
+			</div>
+
+			<div class="button-container">
+				<button type="submit" class="btn">Register</button>
+			</div>
+		</form>
+	</div>
 </body>
+
 </html>

@@ -1,16 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Live Stream</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        img {
+            width: 600px;
+            height: auto;
+            margin-top: 20px;
+            border: 5px solid #3498db;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1em;
+            text-decoration: none;
+            color: #fff;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>This For Live</h1>
-    <img src="{{url_for('video')}}"  alt="Live Stream"/>
+    <h1>Live Camera Capture</h1>
+    <img src="{{url_for('video')}}" alt="Live Stream" />
     <br>
-    <a href="{{url_for('home')}}">
+    <br>
+    <a href="{{url_for('manual')}}">
         <button>Go Back</button>
     </a>
+    <a href="{{url_for('coming_record')}}">
+        <button>Record</button>
+    </a>
+    <a href="{{url_for('facerecognition')}}">
+        <button>Face Recognition</button>
+    </a>
 </body>
+
 </html>

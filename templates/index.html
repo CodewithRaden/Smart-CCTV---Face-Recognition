@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart CCTV Home</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='index.css')}}">
+</head>
+<body>
+    <!-- navbar start -->
+    <div class="container">
+        <div class="navbar">
+            <img src="{{url_for('static',filename='smartCCTV-logo.png')}}" class="logo">
+            <nav>
+                <ul>
+                    <li><a href="#">HOME</a></li>
+                    <li><a href="{{url_for('profile')}}">PROFILE</a></li>
+                    <li><a href="{{url_for('coming')}}">DOCUMENTATION</a></li>
+                    <li><a href="{{url_for('logout')}}">LOGOUT</a></li>
+                </ul>
+            </nav>
+        </div>
+        <!-- navbar end -->
+        
+        <!-- body start -->
+        <div class="row">
+            <div class="col">
+                <h2></h2>
+                <h1>Welcome</h1>
+                <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+                    Ducimus obcaecati repellat eum repellendus, nisi officiis fugiat cum! 
+                    assumenda dolor.lo</p>
+                    <button type="button" ><a href="{{url_for('manual')}}">Manual</a></button>
+                    <button type="button"><a href="{{url_for('coming')}}">Automatic</button>
+
+                </div>
+            </div>
+         
+    </div>
+</body>
+
+</html>

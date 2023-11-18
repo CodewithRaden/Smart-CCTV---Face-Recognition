@@ -4,14 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='profile.css') }}">
-    <title>User Profile</title>
+    <title>Admin Profile</title>
 </head>
 <body>
-    <h1>User Profile</h1>
-    <br>
-    <h2>User ID: {{ user_id }}</h2>
-    <h2>Name: {{ user_name }}</h2>
-    <h2>Email: {{ user_email }}</h2><br>
+    <div class="body">
+        <div>
+            <img src="{{ url_for('static', filename='user.png') }}" class="Image" width="150px" height="150px" >
+        <div>
+            <br><h1>Admin Profile</h1>
+            <table>
+                <br><h2>User ID:{{ user_id }}</h2>
+                <h2>Name:{{ user_name }}</h2>
+                <h2>Email:{{ user_email }}</h2>
+            </table>
+        </div>
+    </div>
     <a href="{{url_for('home')}}">
         <button>Home</button>
     </a>
