@@ -1,0 +1,156 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins",sans-serif;
+}
+
+body {
+  display: flex;
+  min-height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background-image: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.1)),url('2.gif');
+  background-position: center;
+  background-size: cover;
+  padding-left: 3%;
+  padding-right: 8%;
+  box-sizing: border-box;
+}
+
+.wrapper {
+ width: 750px;
+ background: rgba(255,255,255, .2); 
+ border-radius: 10px;
+ color: white;
+ padding: 40px 35px 55px;
+}
+
+.wrapper h1 {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.wrapper .input-box {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.input-box .input-field {
+  position: relative;
+  width: 48%;
+  height: 50px;
+  margin: 13px 0;
+}
+
+.input-box .input-field input {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: 2px solid rgb(255, 255, 255, .1);
+  outline: none;
+  font-size: 16px;
+  color: white;
+  border-radius: 6px;
+  padding: 15px 15px 15px 40px ;
+}
+
+.input-box .input-field input::placeholder {
+  color: white;
+}
+
+.input-box .input-field i {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+}
+
+.wrapper label {
+  display: inline-block;
+  font-size: 14.5px;
+  margin: 10px 0 23px;
+}
+
+.wrapper label input {
+  accent-color: white;
+  margin-right: 5px;
+}
+
+.wrapper .btn {
+  margin-top: 30px;
+  width: 80%;
+  height: 60px;
+  background: white;
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0, .1);
+  cursor: pointer;
+  font-size: 16px;
+  color: black;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.wrapper .btn:hover {
+  background: skyblue; 
+  color: #fff; 
+  transform: scale(1.05); 
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); 
+}
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.wrapper .btn-logout {
+  width: 8%;
+  height: 5vh;
+  background: white;
+  border: none;
+  outline: none;
+  border-radius: 100px;
+  box-shadow: 0 0 10px rgba(0,0,0, .1);
+  cursor: pointer;
+  font-size: 10px;
+  color: whitesmoke;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-logout a{
+  text-decoration: none;
+  color: black;
+  font-weight: bolder;
+}
+
+.btn-logout:hover {
+  background: skyblue;
+  color: #fff; 
+  transform: scale(1.05); 
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); 
+}
+
+.button-logout-container {
+  display: flex;
+  justify-content: right;
+  align-items: center;
+}
+
+.error {
+  background: #0000007a;
+  color: #ffffff;
+  padding: 10px;
+  width: 95%;
+  border-radius: 5px;
+  margin: 20px auto;
+}
