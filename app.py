@@ -2,7 +2,6 @@ from flask import Flask, render_template, Response, request, redirect, url_for, 
 from flask_bcrypt import Bcrypt
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
-import re
 import cv2
 import numpy as np
 import os
@@ -99,8 +98,6 @@ def register():
         existing_user = Database.check_user(email, password)
         if existing_user:
             message = 'Account already exists!'
-        elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-            message = 'Invalid email address!'
         elif not user_name or not password or not email:
             message = 'Please fill out the form!'
         else:
