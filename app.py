@@ -19,7 +19,7 @@ app.config['MYSQL_DB'] = 'muak_db'
 mysql = MySQL(app)
 
 
-class User:
+class Admin:
     def __init__(self, name, email, password):
         self.name = name
         self.email = email
@@ -35,13 +35,13 @@ class User:
 
 class Database:
     @staticmethod
-    def check_user(email, password):
+    def check_admin(email, password):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM user WHERE email = %s', (email,))
-        user = cursor.fetchone()
+        admin = cursor.fetchone()
 
-        if user and bcrypt.check_password_hash(user['password'], password):
-            return user
+        if admin and bcrypt.check_password_hash(admin['password'], password):
+            return admin
         else:
             return None
 
@@ -61,7 +61,7 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
-        user = Database.check_user(email, password)
+        user = Database.check_admin(email, password)
         if user:
             session['loggedin'] = True
             session['userid'] = user['userid']
@@ -95,14 +95,14 @@ def register():
             message = 'Invalid admin key!'
             return render_template('register.html', message=message)
 
-        existing_user = Database.check_user(email, password)
+        existing_user = Database.check_admin(email, password)
         if existing_user:
             message = 'Account already exists!'
         elif not user_name or not password or not email:
             message = 'Please fill out the form!'
         else:
-            new_user = User(user_name, email, password)
-            new_user.save_to_db()
+            new_admin = Admin(user_name, email, password)
+            new_admin.save_to_db()
             message = 'You have successfully registered!'
 
     elif request.method == 'POST':
