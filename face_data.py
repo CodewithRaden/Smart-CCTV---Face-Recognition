@@ -1,8 +1,15 @@
 import cv2
 import numpy as np
 
+
+droidcam_ip = '192.168.74.240'
+droidcam_port = 4747  # Default DroidCam port
+
+# DroidCam video feed URL
+droidcam_url = f'http://{droidcam_ip}:{droidcam_port}/video'
+
 # konfig kamera
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 # Load klasifikasi deteksi wajah
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
