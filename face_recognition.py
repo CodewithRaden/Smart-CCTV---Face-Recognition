@@ -68,13 +68,14 @@ def detect_and_recognize_faces(frame, face_cascade, knn, names):
     return frame
 
 
-droidcam_ip = '192.168.74.240'
-droidcam_port = 4747  # Default DroidCam port
+cap = cv2.VideoCapture(2)
 
-# DroidCam video feed URL
-droidcam_url = f'http://{droidcam_ip}:{droidcam_port}/video'
+new_width = 640
+new_height = 480
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+# Set the video capture properties
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 
 dataset_path = "./face_data/"   

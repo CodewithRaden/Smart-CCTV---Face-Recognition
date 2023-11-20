@@ -4,7 +4,14 @@ import mysql.connector
 from datetime import datetime
 
 def motion_detection(output_folder):
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(2)
+
+    new_width = 640
+    new_height = 480
+
+    # Set the video capture properties
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
 
     motion_threshold = 1000  # Adjust as needed
     motion_detected = False

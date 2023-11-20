@@ -121,13 +121,14 @@ def profile():
     else:
         return redirect(url_for('login'))
 
-droidcam_ip = '192.168.74.240'
-droidcam_port = 4747  # Default DroidCam port
 
-# DroidCam video feed URL
-droidcam_url = f'http://{droidcam_ip}:{droidcam_port}/video'
+camera = cv2.VideoCapture(2)
+# Set the video capture properties
+new_width = 640
+new_height = 480
+camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
 
-camera = cv2.VideoCapture(0)
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 dataset_path = "face_data/"
 face_data = []
