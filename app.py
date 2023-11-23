@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
-app.secret_key = 'woaini'
+app.secret_key = 'alter'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -122,12 +122,12 @@ def profile():
         return redirect(url_for('login'))
 
 
-camera = cv2.VideoCapture(2)
+camera = cv2.VideoCapture(0)
 # Set the video capture properties
-new_width = 640
-new_height = 480
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
+# new_width = 640
+# new_height = 480
+# camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+# camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
 
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 dataset_path = "face_data/"
