@@ -34,6 +34,14 @@ body {
   margin-bottom: 20px;
 }
 
+.wrapper a {
+text-decoration: none;
+color: greenyellow;
+}
+
+.wrapper a:hover {
+  color: skyblue;
+}
 .wrapper .input-box {
   display: flex;
   justify-content: space-between;
