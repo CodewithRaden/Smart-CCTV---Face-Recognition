@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
-app.secret_key = 'woaini'
+app.secret_key = 'alter'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
