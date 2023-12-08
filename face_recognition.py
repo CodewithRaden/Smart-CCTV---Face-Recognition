@@ -68,7 +68,7 @@ def detect_and_recognize_faces(frame, face_cascade, knn, names):
     return frame
 
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
 
 new_width = 640
 new_height = 480

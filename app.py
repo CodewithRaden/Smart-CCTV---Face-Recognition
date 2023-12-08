@@ -124,12 +124,11 @@ def profile():
 
 
 camera = cv2.VideoCapture(0)
-# Set the video capture properties
-# new_width = 640
-# new_height = 480
-# camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
-# camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
-# Inside your camera initialization code
+new_width = 256
+new_height = 256
+camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
+
 
 face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 dataset_path = "face_data/"
@@ -217,7 +216,7 @@ def generate_frames_face():
                         recognized_name = names[int(out)]
                         labels = np.concatenate((face_dataset, face_labels), axis=1)[:, -1]
 
-                        if np.count_nonzero(labels == int(out)) < 10:
+                        if np.count_nonzero(labels == int(out)) < 50:
                             recognized_name = "Unknown"
                     else:
                         recognized_name = "Unknown"

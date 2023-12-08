@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
 
 new_width = 640
 new_height = 480
@@ -36,7 +36,6 @@ while True:
     if len(faces) == 0:
         continue
 
-    k = 0  # buat nanti penambahan data muka
 
     for face in faces:
         x, y, w, h = face
@@ -51,11 +50,10 @@ while True:
         if skip % 10 == 0:
             # data wajah di train
             face_data.append(face_selection)
-            print(f"Face {k} added to dataset.")
-        k += 1
+            print(f"Face added to dataset.")
 
         # nampil wajah
-        cv2.imshow(f"Face {k}", face_selection)
+        cv2.imshow(f"Face", face_selection)
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     # pencet q untuk keluar loop/stop program capture
