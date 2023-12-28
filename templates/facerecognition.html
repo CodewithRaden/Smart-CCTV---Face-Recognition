@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script> <!-- Include SocketIO library -->
     <title>Live Face Recognition</title>
     <style>
         body {
@@ -50,6 +51,15 @@
             text-decoration: none;
             color: inherit;
         }
+
+        /* New styles for notifications */
+        .notification {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -66,23 +76,44 @@
         <button>Live Stream</button>
     </a>
 
+    <div id="notification-container"></div>
+
     <script>
         var video = document.getElementById('video');
-        var startRecordingBtn = document.getElementById('start_recording');
-        var stopRecordingBtn = document.getElementById('stop_recording');
+        var socket = io.connect('{{ url_for('facerecognition') }}'); // konek ke sokeio
 
+
+        socket.on('notification', function(data) {
+            // dispaly notif
+            displayNotification(data.message);
+        });
+
+        function displayNotification(message) {
+            // create notif element
+            var notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerText = message;
+
+            // add notif to container
+            var notificationContainer = document.getElementById('notification-container');
+            notificationContainer.appendChild(notification);
+
+            // remove after 5 sec
+            setTimeout(function() {
+                notification.remove();
+            }, 5000);
+        }
         startRecordingBtn.addEventListener('click', function() {
             $.get("/start_recording", function(data) {
                 console.log(data);
-                // Load the video feed when recording starts
-                video.src = "{{ url_for('video') }}";
+                video.src = "{{ url_for('video_feed_face') }}";
             });
         });
 
         stopRecordingBtn.addEventListener('click', function() {
             $.get("/stop_recording", function(data) {
                 console.log(data);
-                // Stop the video feed when recording stops
+                
                 video.src = "";
             });
         });

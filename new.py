@@ -8,10 +8,12 @@ import threading
 import face_recognition
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from flask_socketio import SocketIO
 
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
+socketio = SocketIO(app)
 
 app.secret_key = 'alter'
 
@@ -64,7 +66,6 @@ class RecordingThread(threading.Thread):
             filename = f"{timestamp}.avi"
             filepath = os.path.join(self.output_folder, filename)
 
-            # Get the original frame width and height
             width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -80,12 +81,11 @@ class RecordingThread(threading.Thread):
             if ret:
                 self.out.write(frame)
 
-        # Release the video writer when done
         self.out.release()
 
     def stop(self):
         self.isRunning = False
-        self.join(timeout=5)  # Wait for the thread to finish
+        self.join(timeout=5)
 
     def __del__(self):
         self.out.release()
@@ -94,10 +94,8 @@ class RecordingThread(threading.Thread):
 
 class VideoCamera(object):
     def __init__(self, output_folder):
-        # Open a camera
         self.cap = cv2.VideoCapture(0)
 
-        # Initialize video recording environment
         self.is_record = False
         self.recordingThread = None
         self.output_folder = output_folder
@@ -125,15 +123,13 @@ class VideoCamera(object):
         if self.recordingThread is not None:
             self.recordingThread.stop()
 
-            # Ensure the recording thread has finished before continuing
             try:
                 self.recordingThread.join(timeout=5)
             except RuntimeError:
-                pass  # Ignore RuntimeError if the thread has already terminated
+                pass 
             
             del self.recordingThread
-
-
+            
 # video_camera = VideoCamera("recorded_videos")
 video_camera = VideoCamera("static/recorded_videos")
 
@@ -161,7 +157,7 @@ def load_known_faces(directory):
 
     return known_images, known_names
 
-# Specify the directory containing face images
+
 faces_directory = "faces"
 known_encodings, known_names = load_known_faces(faces_directory)
 
@@ -251,16 +247,42 @@ def facerecognition():
     else:
         return redirect(url_for('login'))
 
+# def gen_frames_face():
+#     while True:
+#         ret, frame = camera.read()
+
+
+#         face_locations = face_recognition.face_locations(frame)
+#         face_encodings = face_recognition.face_encodings(frame, face_locations)
+
+#         for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+#             # Check if the face matches any of the known people
+#             matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
+
+#             name = "Unknown"
+
+#             for i in range(len(matches)):
+#                 if matches[i]:
+#                     name = known_names[i]
+#                     break
+
+#             cv2.rectangle(frame, (left, top), (right, bottom), (255, 255, 255), 2)
+#             cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (0, 0, 255), 1)
+
+#         _, jpeg = cv2.imencode('.jpg', frame)
+#         data = jpeg.tobytes()
+#         yield (b'--frame\r\n'
+#                b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n')
+
+
 def gen_frames_face():
     while True:
         ret, frame = camera.read()
 
-        # Find all face locations and face encodings in the current frame
         face_locations = face_recognition.face_locations(frame)
         face_encodings = face_recognition.face_encodings(frame, face_locations)
 
         for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-            # Check if the face matches any of the known people
             matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
 
             name = "Unknown"
@@ -270,14 +292,16 @@ def gen_frames_face():
                     name = known_names[i]
                     break
 
+            if name == "Unknown":
+                socketio.emit('notification', {'message': 'Unknown face detected'}, namespace='/facerecognition')
+
             cv2.rectangle(frame, (left, top), (right, bottom), (255, 255, 255), 2)
-            cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (0, 0, 255), 1)
+            cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 0, 0), 1)
 
         _, jpeg = cv2.imencode('.jpg', frame)
         data = jpeg.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n')
-
 
 @app.route('/video_feed_face')
 def video_feed_face():
@@ -380,7 +404,6 @@ def play_video(filename):
 @app.route('/add_face', methods=['GET', 'POST'])
 def add_face():
     if request.method == 'POST':
-        # Validate and save the face image
         if 'face_image' in request.files:
             face_image = request.files['face_image']
             if face_image.filename != '':
@@ -388,13 +411,10 @@ def add_face():
                 face_image_path = os.path.join('faces', filename)
                 face_image.save(face_image_path)
 
-                # Update your face recognition model with the new face
                 encoding = update_face_model(face_image_path)
 
-                # Save face data to the database
                 if encoding is not None:
                     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                    # Ensure the table name matches your actual table name
                     cursor.execute('INSERT INTO face_data (face_encoding, file_name) VALUES (%s, %s)',
                                    (str(encoding), filename))
                     mysql.connection.commit()
@@ -407,12 +427,10 @@ def add_face():
     return render_template('add_face.html')
 
 def update_face_model(face_image_path):
-    # Load the new face image and update the face recognition model
     try:
         image = face_recognition.load_image_file(face_image_path)
         encoding = face_recognition.face_encodings(image)
         if encoding and len(encoding) > 0:
-            # Use the first encoding if there are multiple
             return encoding[0]
         else:
             return None
@@ -421,7 +439,13 @@ def update_face_model(face_image_path):
         return None
 
 
+@socketio.on('connect', namespace='/facerecognition')
+def handle_connect():
+    print('Client connected')
 
+@socketio.on('disconnect', namespace='/facerecognition')
+def handle_disconnect():
+    print('Client disconnected')
     
 if __name__ == '__main__':
     app.run(debug=True)
