@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recorded Videos</title>
+</head>
+<body>
+    <h1>Recorded Videos</h1>
+
+    {% if video_files %}
+        <ul>
+            {% for video_file in video_files %}
+                <li>
+                    <a href="{{ url_for('play_video', filename=video_file) }}">{{ video_file }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No recorded videos available.</p>
+    {% endif %}
+    
+    <a href="{{url_for('manual')}}">
+        <button>Go Back</button>
+    </a>
+</body>
+</html>

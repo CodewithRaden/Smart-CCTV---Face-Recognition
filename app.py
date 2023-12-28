@@ -1,10 +1,10 @@
 from flask import Flask, render_template, Response, request, redirect, url_for, session,jsonify
+from camera import VideoCamera
 from flask_bcrypt import Bcrypt
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import cv2
 import os
-import threading
 import face_recognition
 from datetime import datetime
 
@@ -46,91 +46,6 @@ class Database:
             return admin
         else:
             return None
-
-
-class RecordingThread(threading.Thread):
-    def __init__(self, camera, output_folder):
-        threading.Thread.__init__(self)
-        self.isRunning = True
-        self.cap = camera
-        self.output_folder = output_folder
-        self.out = self.initialize_video_writer()
-
-    def initialize_video_writer(self):
-        try:
-            now = datetime.now()
-            timestamp = now.strftime("%Y%m%d_%H%M%S")
-            filename = f"{timestamp}.avi"
-            filepath = os.path.join(self.output_folder, filename)
-
-            # Get the original frame width and height
-            width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-            return cv2.VideoWriter(filepath, fourcc, 20.0, (width, height))
-        except Exception as e:
-            print(f"Error initializing video writer: {e}")
-            return None
-
-    def run(self):
-        while self.isRunning:
-            ret, frame = self.cap.read()
-            if ret:
-                self.out.write(frame)
-
-        # Release the video writer when done
-        self.out.release()
-
-    def stop(self):
-        self.isRunning = False
-        self.join(timeout=5)  # Wait for the thread to finish
-
-    def __del__(self):
-        self.out.release()
-
-
-class VideoCamera(object):
-    def __init__(self, output_folder):
-        # Open a camera
-        self.cap = cv2.VideoCapture(0)
-
-        # Initialize video recording environment
-        self.is_record = False
-        self.recordingThread = None
-        self.output_folder = output_folder
-
-    def __del__(self):
-        self.cap.release()
-
-    def get_frame(self):
-        ret, frame = self.cap.read()
-
-        if ret:
-            ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-            return jpeg.tobytes()
-        else:
-            return None
-
-    def start_record(self):
-        self.is_record = True
-        self.recordingThread = RecordingThread(self.cap, self.output_folder)
-        self.recordingThread.start()
-
-    def stop_record(self):
-        self.is_record = False
-
-        if self.recordingThread is not None:
-            self.recordingThread.stop()
-
-            # Ensure the recording thread has finished before continuing
-            try:
-                self.recordingThread.join(timeout=5)
-            except RuntimeError:
-                pass  # Ignore RuntimeError if the thread has already terminated
-
-video_camera = VideoCamera("recorded_videos")
-
 
 
 def before_request():
@@ -334,16 +249,70 @@ def coming_record():
         return redirect(url_for('login'))
     
     
-@app.route('/start_recording')
-def start_recording():
-    video_camera.start_record()
-    return jsonify({'status': 'Recording started'})
+#Record Fitur
+video_camera = None
+global_frame = None
+output_folder = 'recorded_video/'  # folder path
 
-@app.route('/stop_recording')
-def stop_recording():
-    video_camera.stop_record()
-    return jsonify({'status': 'Recording stopped'})
+# Ensure the output folder exists
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
 
+def generate_filename():
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    return f"output_{timestamp}.avi"  
+
+
+@app.route('/recording')
+def recording():
+    if 'loggedin' in session:
+        return render_template('record.html')
+    else:
+        return redirect(url_for('login'))
+    
+
+@app.route('/record_status', methods=['POST'])
+def record_status():
+    global video_camera 
+    if video_camera is None:
+        video_camera = VideoCamera(output_folder)
+
+    json = request.get_json()
+
+    status = json['status']
+
+    if status == "true":
+        video_camera.start_record()
+        return jsonify(result="started")
+    else:
+        video_camera.stop_record()
+
+        return jsonify(result="stopped")
+
+def video_stream():
+    global video_camera 
+    global global_frame
+
+    if video_camera is None:
+        video_camera = VideoCamera(output_folder)
+
+    while True:
+        frame = video_camera.get_frame()
+
+        if frame is not None:
+            global_frame = frame
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        else:
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + global_frame + b'\r\n\r\n')
+
+@app.route('/video_viewer')
+def video_viewer():
+    return Response(video_stream(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,threaded=True)

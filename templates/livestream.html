@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Stream</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -60,12 +61,34 @@
     <a href="{{url_for('manual')}}">
         <button>Go Back</button>
     </a>
-    <a href="{{url_for('coming_record')}}">
-        <button>Record</button>
+    <button id="start_recording">Start Recording</button>
+    <button id="stop_recording">Stop Recording</button>
     </a>
     <a href="{{url_for('facerecognition')}}">
         <button>Face Recognition</button>
     </a>
+
+    <script>
+        var video = document.getElementById('video');
+        var startRecordingBtn = document.getElementById('start_recording');
+        var stopRecordingBtn = document.getElementById('stop_recording');
+
+        startRecordingBtn.addEventListener('click', function() {
+            $.get("/start_recording", function(data) {
+                console.log(data);
+                // Load the video feed when recording starts
+                video.src = "{{ url_for('video') }}";
+            });
+        });
+
+        stopRecordingBtn.addEventListener('click', function() {
+            $.get("/stop_recording", function(data) {
+                console.log(data);
+                // Stop the video feed when recording stops
+                video.src = "";
+            });
+        });
+    </script>
 </body>
 
 </html>
