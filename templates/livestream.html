@@ -72,19 +72,19 @@
         var video = document.getElementById('video');
         var startRecordingBtn = document.getElementById('start_recording');
         var stopRecordingBtn = document.getElementById('stop_recording');
-
+        
+    
         startRecordingBtn.addEventListener('click', function() {
             $.get("/start_recording", function(data) {
                 console.log(data);
-                // Load the video feed when recording starts
                 video.src = "{{ url_for('video') }}";
+                
             });
         });
-
+    
         stopRecordingBtn.addEventListener('click', function() {
             $.get("/stop_recording", function(data) {
                 console.log(data);
-                // Stop the video feed when recording stops
                 video.src = "";
             });
         });

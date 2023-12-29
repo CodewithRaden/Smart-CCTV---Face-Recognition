@@ -49,7 +49,23 @@ class Database:
             return admin
         else:
             return None
+            
 
+class CameraSingleton:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CameraSingleton, cls).__new__(cls)
+            cls._instance.camera = cv2.VideoCapture(0)
+            new_width = 256
+            new_height = 256
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
+        return cls._instance
+
+    def get_camera(self):
+        return self.camera
 
 class RecordingThread(threading.Thread):
     def __init__(self, camera, output_folder):
@@ -94,17 +110,16 @@ class RecordingThread(threading.Thread):
 
 class VideoCamera(object):
     def __init__(self, output_folder):
-        self.cap = cv2.VideoCapture(0)
-
+        self.camera_singleton = CameraSingleton()
         self.is_record = False
         self.recordingThread = None
         self.output_folder = output_folder
 
     def __del__(self):
-        self.cap.release()
+        pass
 
     def get_frame(self):
-        ret, frame = self.cap.read()
+        ret, frame = self.camera_singleton.get_camera().read()
 
         if ret:
             ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
@@ -114,7 +129,7 @@ class VideoCamera(object):
 
     def start_record(self):
         self.is_record = True
-        self.recordingThread = RecordingThread(self.cap, self.output_folder)
+        self.recordingThread = RecordingThread(self.camera_singleton.get_camera(), self.output_folder)
         self.recordingThread.start()
 
     def stop_record(self):
@@ -126,8 +141,8 @@ class VideoCamera(object):
             try:
                 self.recordingThread.join(timeout=5)
             except RuntimeError:
-                pass 
-            
+                pass
+
             del self.recordingThread
             
 # video_camera = VideoCamera("recorded_videos")
@@ -231,7 +246,8 @@ def profile():
         return redirect(url_for('login'))
     
     
-camera =  cv2.VideoCapture(0)
+camera_singleton = CameraSingleton()
+camera = camera_singleton.get_camera()
 
 new_width = 256
 new_height = 256
