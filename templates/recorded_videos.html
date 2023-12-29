@@ -1,27 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recorded Videos</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
 </head>
-<body>
-    <h1>Recorded Videos</h1>
 
-    {% if video_files %}
-        <ul>
-            {% for video_file in video_files %}
-                <li>
-                    <a href="{{ url_for('play_video', filename=video_file) }}">{{ video_file }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No recorded videos available.</p>
-    {% endif %}
-    
-    <a href="{{url_for('manual')}}">
-        <button>Go Back</button>
-    </a>
+<body>
+
+    <!-- navbar start -->
+    <div class="container">
+        <div class="navbar">
+            <h2><img src="{{url_for('static',filename='folder.png')}}" alt="Logo" class="logo" id="logo">Documentation</h2>
+
+            <script>
+                document.getElementById('logo').addEventListener('click', function () {
+                    window.location.reload();
+                });
+            </script>
+
+            <nav>
+                <ul>
+                    <li><a href="{{url_for('home')}}">HOME</a></li>
+                    <li><a href="{{url_for('profile')}}">PROFILE</a></li>
+                    <li><a href="{{url_for('recorded_videos')}}">DOCUMENTATION</a></li>
+                    <li><a href="{{url_for('logout')}}">LOGOUT</a></li>
+                </ul>
+            </nav>
+        </div>
+        <!-- navbar end -->
+
+        <main class="table">
+            <section class="table_header">
+                <h1>Recording File</h1>
+            </section>
+            <section class="table_body">
+                <tr>
+                    <td>
+                        {% if video_files %}
+                        <ul class="custom-list">
+                            {% for video_file in video_files %}
+                            <li>
+                                <a href="{{ url_for('play_video', filename=video_file) }}">{{ video_file }}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p>No recorded videos available.</p>
+                        {% endif %}
+
+                    </td>
+                </tr>
+
+        </main>
+        <a href="{{url_for('manual')}}">
+            <button>Go Back</button>
+        </a>
+
+    </div>
+
 </body>
+
 </html>

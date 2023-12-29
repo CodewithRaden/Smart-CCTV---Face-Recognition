@@ -1,0 +1,193 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap");
+ 
+*{
+  margin: 0;
+  padding: 0;
+  font-family:'poppins',sans-serif;
+}
+
+/* nav start */
+.container{
+  width: 100%;
+  height: 100vh;
+  background-image: linear-gradient(rgba(0,0,0,0.2),rgba(0,0,0,0.9)),url('particles.gif ');
+  background-position: center;
+  background-size: contain;
+  padding-left: 3%;
+  padding-right: 8%;
+  box-sizing: border-box;
+}
+.logo{
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+.logo:hover{
+  cursor: pointer;
+  
+}
+.navbar{
+  height: 12%;
+  display: flex;
+  align-items: center;
+}
+.menu-icon{
+  width: 4.5%;
+  height: 6vh;
+  margin-top: 5px;
+  padding-left: 15px;
+}
+nav{
+  flex: 1;
+  text-align: right;
+}
+nav ul li{
+  list-style: none;
+  display: inline-block;
+  margin-left: 30px;
+}
+nav ul li a{
+  text-decoration: none;
+  color: white;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+nav ul li a:hover{
+    color: skyblue; 
+    border-bottom: 2px solid skyblue; 
+    transition: color 0.5s, border-bottom 0.2s;
+    font-size: 15px;
+    font-weight: bolder;
+}
+
+/* nav end */
+
+/* row :start */
+.row{               /*kotak utama*/
+  display: flex;
+  height: 75%;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+
+}
+.col{
+  flex-basis: 50%;  /*membuat paragraf */
+}
+h1{
+  color: white;
+  font-size: 35px;
+  margin-left: 2%;
+}
+h2{
+  color: white;
+  font-size: 20px;
+}
+p{
+  color: white;
+  font-size: 12px;
+  line-height: 15px;
+}
+
+/* custom list start */
+
+.custom-list {
+    list-style: none; /* Remove default list item marker */
+     /* Add some left padding for the image */
+    text-decoration: none;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.custom-list li a {
+  text-decoration: none;
+  color: white;
+}
+
+.custom-list li a:hover {
+    color: aqua;
+  }
+
+
+.custom-list li {
+    /* Add some styling to the list items */
+    margin-bottom: 10px; /* Adjust margin between list items */
+    background-image: url('playbutton.png'); /* Set the background image */
+    background-repeat: no-repeat; /* Ensure the image doesn't repeat */
+    background-size: 16px; /* Adjust the size of the background image */
+    padding-left: 25px; /* Add padding for the image */
+}
+
+.custom-list li p {
+    /* Add some styles to the text within the list item */
+    /* Adjust this based on your design */
+    margin: 5px 0;
+}
+
+/* custom list end */
+
+
+/* tabel start */
+main.table {
+    margin-top: 0px;
+    margin-left: 10%;
+    width: 85%;
+    max-height: 500px;
+    height: auto;
+    background-color: #fff5;
+
+    backdrop-filter: blur(7px);
+    box-shadow: 0 .4rem .8rem #0005;
+    border-radius: .8rem;
+    overflow: hidden;
+    
+}
+
+
+.table_header {
+    width: 100%;
+    height:10% ;
+    background-color: #fff5;
+    
+}
+
+.table_body {
+    max-height: 400px;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+
+.table_body li {
+    font-size: 20px;
+}
+
+
+button{
+    text-decoration: none;
+    width: 150px;
+    color: white;
+    font-size: 15px;
+    padding: 12px 0;
+    background: black;
+    backdrop-filter: blur();
+    border: 0;
+    border-radius: 20px;
+    margin-top: 30px ;
+    margin-left: 10%;
+}
+button a{
+    text-decoration: none;
+    color: white;
+}
+
+
+button:hover{
+    cursor: pointer;
+    transform: translateY(-10%); /* membuat animasi naik 10% */
+    transition: 0.2s;
+    background: skyblue;
+
+}
