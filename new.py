@@ -9,6 +9,8 @@ import face_recognition
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO
+import RPi.GPIO as GPIO
+import time
 
 
 app = Flask(__name__)
@@ -19,7 +21,7 @@ app.secret_key = 'alter'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_PASSWORD'] = 'admin'
 app.config['MYSQL_DB'] = 'muak_db'
 
 mysql = MySQL(app)
@@ -57,7 +59,7 @@ class CameraSingleton:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(CameraSingleton, cls).__new__(cls)
-            cls._instance.camera = cv2.VideoCapture(0)
+            cls._instance.camera = cv2.VideoCapture(0,cv2.CAP_V4L2) #,s cv2.CAP_V4L2, cv2.CAP_GSTREAMER
             new_width = 256
             new_height = 256
             cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
@@ -462,6 +464,44 @@ def handle_connect():
 @socketio.on('disconnect', namespace='/facerecognition')
 def handle_disconnect():
     print('Client disconnected')
+    
+    
+PIR_PIN = 4
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(PIR_PIN, GPIO.IN)
+
+
+
+@app.route('/motion_detection')
+def motion_detection():
+    if 'loggedin' in session:
+        return render_template('motion_detection.html')
+    else:
+        return redirect(url_for('login'))
+
+def motion_detection_thread():
+    while True:
+        if GPIO.input(PIR_PIN):
+            # Motion detected
+            print("Motion detected!")
+            video_camera.start_record()
+            socketio.emit('notification', {'message': 'Motion detected!'}, namespace='/facerecognition')
+            time.sleep(5)  # Adjust the time as needed
+            video_camera.stop_record()
+        else:
+            # No motion
+            print("No motion detected.")
+            socketio.emit('notification', {'message': 'No motion detected.'}, namespace='/facerecognition')
+            time.sleep(1)
+            break
+            
+            
+
+motion_thread = threading.Thread(target=motion_detection_thread)
+motion_thread.start()
+
+
+
     
 if __name__ == '__main__':
     app.run(debug=True)

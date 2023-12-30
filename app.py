@@ -1,22 +1,25 @@
-from flask import Flask, render_template, Response, request, redirect, url_for, session,jsonify
-from camera import VideoCamera
+from flask import Flask, render_template, Response, request, redirect, url_for, session,jsonify,send_from_directory,send_file,flash
 from flask_bcrypt import Bcrypt
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import cv2
 import os
+import threading
 import face_recognition
 from datetime import datetime
+from werkzeug.utils import secure_filename
+from flask_socketio import SocketIO
 
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
+socketio = SocketIO(app)
 
 app.secret_key = 'alter'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_PASSWORD'] = 'admin'
 app.config['MYSQL_DB'] = 'muak_db'
 
 mysql = MySQL(app)
@@ -46,6 +49,107 @@ class Database:
             return admin
         else:
             return None
+            
+
+class CameraSingleton:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CameraSingleton, cls).__new__(cls)
+            # Use cv2.CAP_V4L2 explicitly
+            cls._instance.camera = cv2.VideoCapture(0, cv2.CAP_GSTREAMER)
+            new_width = 256
+            new_height = 256
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
+        return cls._instance
+
+    def get_camera(self):
+        return self.camera
+
+
+class RecordingThread(threading.Thread):
+    def __init__(self, camera, output_folder):
+        threading.Thread.__init__(self)
+        self.isRunning = True
+        self.cap = camera
+        self.output_folder = output_folder
+        self.out = self.initialize_video_writer()
+
+    def initialize_video_writer(self):
+        try:
+            now = datetime.now()
+            timestamp = now.strftime("%Y%m%d_%H%M%S")
+            filename = f"{timestamp}.avi"
+            filepath = os.path.join(self.output_folder, filename)
+
+            width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+            return cv2.VideoWriter(filepath, fourcc, 20.0, (width, height))
+        except Exception as e:
+            print(f"Error initializing video writer: {e}")
+            return None
+
+    def run(self):
+        while self.isRunning:
+            ret, frame = self.cap.read()
+            if ret:
+                self.out.write(frame)
+
+        self.out.release()
+
+    def stop(self):
+        self.isRunning = False
+        self.join(timeout=5)
+
+    def __del__(self):
+        self.out.release()
+        self.out = None
+
+
+class VideoCamera(object):
+    def __init__(self, output_folder):
+        self.camera_singleton = CameraSingleton()
+        self.is_record = False
+        self.recordingThread = None
+        self.output_folder = output_folder
+
+    def __del__(self):
+        pass
+
+    def get_frame(self):
+        ret, frame = self.camera_singleton.get_camera().read()
+
+        if ret:
+            ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
+            return jpeg.tobytes()
+        else:
+            return None
+
+    def start_record(self):
+        self.is_record = True
+        self.recordingThread = RecordingThread(self.camera_singleton.get_camera(), self.output_folder)
+        self.recordingThread.start()
+
+    def stop_record(self):
+        self.is_record = False
+
+        if self.recordingThread is not None:
+            self.recordingThread.stop()
+
+            try:
+                self.recordingThread.join(timeout=5)
+            except RuntimeError:
+                pass
+
+            del self.recordingThread
+            
+# video_camera = VideoCamera("recorded_videos")
+video_camera = VideoCamera("static/recorded_videos")
+
 
 
 def before_request():
@@ -70,7 +174,7 @@ def load_known_faces(directory):
 
     return known_images, known_names
 
-# Specify the directory containing face images
+
 faces_directory = "faces"
 known_encodings, known_names = load_known_faces(faces_directory)
 
@@ -144,8 +248,9 @@ def profile():
         return redirect(url_for('login'))
     
     
-camera = cv2.VideoCapture(0)
-#Set the video capture properties
+camera_singleton = CameraSingleton()
+camera = camera_singleton.get_camera()
+
 new_width = 256
 new_height = 256
 camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
@@ -160,16 +265,42 @@ def facerecognition():
     else:
         return redirect(url_for('login'))
 
+# def gen_frames_face():
+#     while True:
+#         ret, frame = camera.read()
+
+
+#         face_locations = face_recognition.face_locations(frame)
+#         face_encodings = face_recognition.face_encodings(frame, face_locations)
+
+#         for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+#             # Check if the face matches any of the known people
+#             matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
+
+#             name = "Unknown"
+
+#             for i in range(len(matches)):
+#                 if matches[i]:
+#                     name = known_names[i]
+#                     break
+
+#             cv2.rectangle(frame, (left, top), (right, bottom), (255, 255, 255), 2)
+#             cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (0, 0, 255), 1)
+
+#         _, jpeg = cv2.imencode('.jpg', frame)
+#         data = jpeg.tobytes()
+#         yield (b'--frame\r\n'
+#                b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n')
+
+
 def gen_frames_face():
     while True:
         ret, frame = camera.read()
 
-        # Find all face locations and face encodings in the current frame
         face_locations = face_recognition.face_locations(frame)
         face_encodings = face_recognition.face_encodings(frame, face_locations)
 
         for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-            # Check if the face matches any of the known people
             matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
 
             name = "Unknown"
@@ -179,14 +310,16 @@ def gen_frames_face():
                     name = known_names[i]
                     break
 
+            if name == "Unknown":
+                socketio.emit('notification', {'message': 'Unknown face detected'}, namespace='/facerecognition')
+
             cv2.rectangle(frame, (left, top), (right, bottom), (255, 255, 255), 2)
-            cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (0, 0, 255), 1)
+            cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 0, 0), 1)
 
         _, jpeg = cv2.imencode('.jpg', frame)
         data = jpeg.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n')
-
 
 @app.route('/video_feed_face')
 def video_feed_face():
@@ -249,70 +382,88 @@ def coming_record():
         return redirect(url_for('login'))
     
     
-#Record Fitur
-video_camera = None
-global_frame = None
-output_folder = 'recorded_video/'  # folder path
+@app.route('/start_recording')
+def start_recording():
+    video_camera.start_record()
+    return jsonify({'status': 'Recording started'})
 
-# Ensure the output folder exists
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
+@app.route('/stop_recording')
+def stop_recording():
+    video_camera.stop_record()
+    return jsonify({'status': 'Recording stopped'})
 
-def generate_filename():
-    now = datetime.now()
-    timestamp = now.strftime("%Y%m%d_%H%M%S")
-    return f"output_{timestamp}.avi"  
-
-
-@app.route('/recording')
-def recording():
+@app.route('/recorded_videos')
+def recorded_videos():
     if 'loggedin' in session:
-        return render_template('record.html')
+        video_folder = "static/recorded_videos"
+        video_files = [f for f in os.listdir(video_folder) if f.endswith(".avi") or f.endswith(".mp4")]
+        return render_template('recorded_videos.html', video_files=video_files)
     else:
         return redirect(url_for('login'))
     
+# @app.route('/play_video/<filename>')
+# def play_video(filename):
+#     videos_folder = 'static/recorded_videos'
+#     video_path = os.path.join(videos_folder, filename)
 
-@app.route('/record_status', methods=['POST'])
-def record_status():
-    global video_camera 
-    if video_camera is None:
-        video_camera = VideoCamera(output_folder)
+#     if not os.path.isfile(video_path):
+#         return render_template('error.html', error_message='Video not found')
 
-    json = request.get_json()
+#     return render_template('play_video.html', filename=filename)
 
-    status = json['status']
 
-    if status == "true":
-        video_camera.start_record()
-        return jsonify(result="started")
-    else:
-        video_camera.stop_record()
+@app.route('/play_video/<filename>') 
+def play_video(filename):
+    videos_folder = 'static/recorded_videos'
+    video_path = os.path.join(videos_folder, filename)
+    return send_file(video_path, mimetype='video/avi', as_attachment=False)
 
-        return jsonify(result="stopped")
 
-def video_stream():
-    global video_camera 
-    global global_frame
+@app.route('/add_face', methods=['GET', 'POST'])
+def add_face():
+    if request.method == 'POST':
+        if 'face_image' in request.files:
+            face_image = request.files['face_image']
+            if face_image.filename != '':
+                filename = secure_filename(face_image.filename)
+                face_image_path = os.path.join('faces', filename)
+                face_image.save(face_image_path)
 
-    if video_camera is None:
-        video_camera = VideoCamera(output_folder)
+                encoding = update_face_model(face_image_path)
 
-    while True:
-        frame = video_camera.get_frame()
+                if encoding is not None:
+                    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                    cursor.execute('INSERT INTO face_data (face_encoding, file_name) VALUES (%s, %s)',
+                                   (str(encoding), filename))
+                    mysql.connection.commit()
 
-        if frame is not None:
-            global_frame = frame
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+                    flash('Success Add Face Data')
+                    return redirect(url_for('add_face'))
+                else:
+                    flash('Error updating face model. Please make sure the image contains a face.')
+
+    return render_template('add_face.html')
+
+def update_face_model(face_image_path):
+    try:
+        image = face_recognition.load_image_file(face_image_path)
+        encoding = face_recognition.face_encodings(image)
+        if encoding and len(encoding) > 0:
+            return encoding[0]
         else:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + global_frame + b'\r\n\r\n')
+            return None
+    except Exception as e:
+        print(f"Error updating face model: {e}")
+        return None
 
-@app.route('/video_viewer')
-def video_viewer():
-    return Response(video_stream(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@socketio.on('connect', namespace='/facerecognition')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect', namespace='/facerecognition')
+def handle_disconnect():
+    print('Client disconnected')
     
-
 if __name__ == '__main__':
-    app.run(debug=True,threaded=True)
+    app.run(debug=True)
