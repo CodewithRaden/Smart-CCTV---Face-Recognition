@@ -34,10 +34,15 @@ class Admin: # clas admin dengan nama,email dan password
 
     def save_to_db(self): # menyimpan data admin ke database setelah meng-hash password.
         hashed_password = bcrypt.generate_password_hash(self.password).decode('utf-8')
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('INSERT INTO user (name, email, password) VALUES (%s, %s, %s)',
-                       (self.name, self.email, hashed_password))
-        mysql.connection.commit()
+        try:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('INSERT INTO user (name, email, password) VALUES (%s, %s, %s)',
+                           (self.name, self.email, hashed_password))
+            mysql.connection.commit()
+        except Exception as error:
+            print(f"Error saving data to database: {error}")
+        finally:
+            cursor.close()
 
 
 class Database: # method untuk cek data admin yg ada didalam database 
@@ -160,14 +165,17 @@ def load_known_faces(directory):
     known_images = []
     known_names = []
 
-    for filename in os.listdir(directory):
-        if filename.endswith(".jpg") or filename.endswith(".jpeg"):
-            path = os.path.join(directory, filename)
-            image = face_recognition.load_image_file(path)
-            encoding = face_recognition.face_encodings(image)
-            if encoding:
-                known_images.append(encoding[0])
-                known_names.append(os.path.splitext(filename)[0])
+    try:
+        for filename in os.listdir(directory):
+            if filename.endswith(".jpg") or filename.endswith(".jpeg"):
+                path = os.path.join(directory, filename)
+                image = face_recognition.load_image_file(path)
+                encoding = face_recognition.face_encodings(image)
+                if encoding:
+                    known_images.append(encoding[0])
+                    known_names.append(os.path.splitext(filename)[0])
+    except Exception as error:
+        print(f"Error loading known faces: {error}")
 
     return known_images, known_names
 
