@@ -113,4 +113,12 @@ button:hover{
   background: skyblue;
 
 }
+
+.back_btn:hover{
+  cursor: pointer;
+  transform: translateY(-10%); /* membuat animasi naik 10% */
+  transition: 0.2s;
+  background: rgb(212, 34, 34);
+
+}
 /* row end */
