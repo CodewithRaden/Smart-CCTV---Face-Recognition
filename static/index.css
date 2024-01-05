@@ -63,44 +63,48 @@ nav ul li a:hover{
 /* nav end */
 
 /* row :start */
-.row{               /*kotak utama*/
+.row{  /*kotak utama*/
   display: flex;
   height: 75%;
   align-items: center;
   text-align: center;
-  justify-content: center;
-
+  justify-content: center;  
 }
+
 .col{
   flex-basis: 50%;  /*membuat paragraf */
+  max-width: 600px;
 }
 h1{
   color: white;
-  font-size: 50px;
+  font-size: 40px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  
 }
 h2{
   color: white;
-  font-size: 20px;
+  font-size: 30px;
 }
 p{
   color: white;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 15px;
 }
 button{
   text-decoration: none;
-  width: 150px;
+  width: 300px;
   color: white;
   font-size: 15px;
   padding: 12px 0;
-  background: black;
+  background: linear-gradient(135deg, #ff0000 0%,#3bee0e 100%) ;
   backdrop-filter: blur();
   border: 0;
-  border-radius: 20px;
-  margin-top: 30px ;
-  margin-left: 10px;
+  border-radius: 8px;
+  
 }
 button a{
+  margin-top: 10px;
   text-decoration: none;
   color: white;
 }
@@ -110,15 +114,28 @@ button:hover{
   cursor: pointer;
   transform: translateY(-10%); /* membuat animasi naik 10% */
   transition: 0.2s;
-  background: skyblue;
+  background: rgb(255, 0, 0);
 
 }
 
-.back_btn:hover{
+.manual-btn {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #0eeed8 0%,#9658fe 100%);
+}
+
+.manual-btn:hover{
   cursor: pointer;
   transform: translateY(-10%); /* membuat animasi naik 10% */
   transition: 0.2s;
-  background: rgb(212, 34, 34);
+  background: skyblue;
 
 }
 /* row end */
+
+.rotate {
+  width: 400px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19) ;
+  margin-right: 40px;
+  margin-left: 20%;
+}

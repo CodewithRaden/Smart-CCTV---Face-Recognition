@@ -304,7 +304,7 @@ input[type="file"] {
   cursor: pointer;
   transform: translateY(-10%); /* membuat animasi naik 10% */
   transition: 0.2s;
-  background: skyblue;
+  background: linear-gradient(135deg, #ff0000 0%,#3bee0e 100%) ;
 
 }
 

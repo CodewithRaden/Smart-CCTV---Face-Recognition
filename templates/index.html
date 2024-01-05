@@ -13,8 +13,9 @@
             <img src="{{url_for('static',filename='smartCCTV-logo.png')}}" class="logo">
             <nav>
                 <ul>
-                    <li><a href="#">HOME</a></li>
+                    <li><a href="{{url_for('home')}}">HOME</a></li>
                     <li><a href="{{url_for('profile')}}">PROFILE</a></li>
+                    <li><a href="{{url_for('add_face')}}">ADD FACE</a></li>
                     <li><a href="{{url_for('recorded_videos')}}">DOCUMENTATION</a></li>
                     <li><a href="{{url_for('logout')}}">LOGOUT</a></li>
                 </ul>
@@ -24,11 +25,15 @@
         
         <!-- body start -->
         <div class="row">
+    
             <div class="col">
                 <h2></h2>
-                <h1>Welcome</h1>
-                <p>Kami Disuruh Buat Smart CCTV 🙂</p>
-                    <button type="button" ><a href="{{url_for('manual')}}">Manual</a></button>
+                <h1 class="h1">Welcome Operator</h1>
+                <p> now you acessing smart cctv website.    this website 
+                    provides some features such as livestream, recording, 
+                    face detection , and see recording. <br> 
+                    <br><br>you can access menu for manual or automation with button bellow </p>
+                    <button type="button" class="manual-btn" ><a href="{{url_for('manual')}}">Manual</a></button>
                     <button type="button"><a href="{{url_for('coming')}}">Automatic</button>
 
                 </div>
