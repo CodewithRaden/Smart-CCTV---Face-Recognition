@@ -145,9 +145,8 @@ class VideoCamera(object):
 
             del self.recordingThread
             
-# video_camera = VideoCamera("recorded_videos")
+            
 video_camera = VideoCamera("static/recorded_videos")
-
 
 
 def before_request():
@@ -263,33 +262,6 @@ def facerecognition():
     else:
         return redirect(url_for('login'))
 
-# def gen_frames_face():
-#     while True:
-#         ret, frame = camera.read()
-
-
-#         face_locations = face_recognition.face_locations(frame)
-#         face_encodings = face_recognition.face_encodings(frame, face_locations)
-
-#         for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-#             # Check if the face matches any of the known people
-#             matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
-
-#             name = "Unknown"
-
-#             for i in range(len(matches)):
-#                 if matches[i]:
-#                     name = known_names[i]
-#                     break
-
-#             cv2.rectangle(frame, (left, top), (right, bottom), (255, 255, 255), 2)
-#             cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (0, 0, 255), 1)
-
-#         _, jpeg = cv2.imencode('.jpg', frame)
-#         data = jpeg.tobytes()
-#         yield (b'--frame\r\n'
-#                b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n')
-
 
 def gen_frames_face():
     while True:
@@ -399,16 +371,6 @@ def recorded_videos():
     else:
         return redirect(url_for('login'))
     
-# @app.route('/play_video/<filename>')
-# def play_video(filename):
-#     videos_folder = 'static/recorded_videos'
-#     video_path = os.path.join(videos_folder, filename)
-
-#     if not os.path.isfile(video_path):
-#         return render_template('error.html', error_message='Video not found')
-
-#     return render_template('play_video.html', filename=filename)
-
 
 @app.route('/play_video/<filename>') 
 def play_video(filename):
