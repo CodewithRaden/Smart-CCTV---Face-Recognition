@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Detection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        img {
+            width: 600px;
+            height: auto;
+            margin-top: 20px;
+            border: 5px solid #3498db;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1em;
+            text-decoration: none;
+            color: #fff;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #clock-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        #date-clock,
+        #camera-container {
+            display: none;
+        }
+        
+
+    </style>
+</head>
+
+<body>
+    <h1>Automation Mode</h1>
+
+    <div id="clock-container">
+        <div id="date-clock"></div>
+    </div>
+
+    <div id="camera-container" style="display: none;">
+        <img id="camera-feed" src="{{ url_for('video_feed_face') }}" alt="Camera Feed">
+    </div>
+
+    <a href="{{url_for('home')}}">
+        <button onclick="closeCamera()">Go Back</button>
+    </a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+   <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port + '/facerecognition');
+        var timeoutId;
+
+        function showClock() {
+            document.getElementById("date-clock").style.display = "block";
+            document.getElementById("camera-container").style.display = "none";
+        }
+
+        function showCamera() {
+            document.getElementById("date-clock").style.display = "none";
+            document.getElementById("camera-container").style.display = "block";
+
+            // Set a timeout to close the camera after 10 seconds
+            timeoutId = setTimeout(function () {
+                closeCamera();
+            }, 10000);
+
+            // Hardcoded camera feed URL
+            document.getElementById("camera-feed").src = "{{ url_for('video_feed_face') }}";
+        }
+
+        function closeCamera() {
+            document.getElementById("camera-container").style.display = "none";
+            document.getElementById("date-clock").style.display = "block";
+        }
+
+        // Initial call to show the clock when the page loads
+        showClock();
+
+        // Add the following function to handle motion detection events
+        socket.on('motion_detected', function () {
+            // Clear previous timeout
+            clearTimeout(timeoutId);
+            showCamera();
+        });
+
+        // Add the following function to handle no motion detected events
+        socket.on('no_motion_detected', function () {
+            // Set a timeout to show the clock after 10 seconds (adjust the time as needed)
+            timeoutId = setTimeout(function () {
+                showClock();
+            }, 10000);
+        });
+
+        // Function to update the date and time
+        function updateDateTime() {
+            var now = new Date();
+            var dateClock = document.getElementById("date-clock");
+            dateClock.innerHTML = now.toLocaleString();
+        }
+
+        setInterval(updateDateTime, 1000);
+    </script>
+</body>
+
+</html>

@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{url_for('static',filename='login.css')}}">
     <link rel="shortcut icon" href="img.jpg" type="image/x-icon">
+    <link href="{{url_for('static',filename='shortcut.png')}}" rel='shortcut icon'>
     <title>Smart CCTV Login</title>
 </head>
 
 <body>
+    <div id="preloader"></div>
     <section>
         <div class="form-box">
             <div class="form-value">
@@ -42,6 +44,12 @@
     </section>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script>
+        var loader = document.getElementById("preloader");
+        window.addEventListener("load", function(){
+            loader.style.display = "none";
+        });
+    </script>
 </body>
 
 </html>
