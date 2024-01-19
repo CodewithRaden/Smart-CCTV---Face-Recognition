@@ -54,12 +54,23 @@ nav ul li a{
   font-size: 13px;
   text-transform: uppercase;
 }
-nav ul li a:hover{
-    color: skyblue; 
-    border-bottom: 2px solid skyblue; 
-    transition: color 0.5s, border-bottom 0.2s;
-    font-size: 15px;
-    font-weight: bolder;
+.navbar ul li:nth-child(1) a:hover,
+.navbar ul li:nth-child(2) a:hover,
+.navbar ul li:nth-child(3) a:hover,
+.navbar ul li:nth-child(4) a:hover {
+  color: skyblue;
+  border-bottom: 2px solid skyblue;
+  transition: color 0.5s, border-bottom 0.2s;
+  font-size: 15px;
+  font-weight: bolder;
+}
+
+.navbar ul li:nth-child(5) a:hover {
+  color: coral;
+  border-bottom: 2px solid coral;
+  transition: color 0.5s, border-bottom 0.2s;
+  font-size: 15px;
+  font-weight: bolder;
 }
 
 /* nav end */
