@@ -51,11 +51,27 @@
             text-decoration: none;
             color: inherit;
         }
+
+        #message {
+            margin-top: 10px;
+            color: #ffff;
+            font-weight: bold;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            width:45%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
 </head>
 
 <body>
     <h1>Live Camera Capture</h1>
+    <div id="message"></div>
     <img src="{{url_for('video')}}" alt="Live Stream" />
     <br>
     <br>
@@ -64,31 +80,40 @@
     </a>
     <button id="start_recording">Start Recording</button>
     <button id="stop_recording">Stop Recording</button>
-    </a>
     <a href="{{url_for('facerecognition')}}">
         <button>Face Recognition</button>
     </a>
+    
+    <video id="video" controls style="display: none;"></video>
 
     <script>
         var video = document.getElementById('video');
         var startRecordingBtn = document.getElementById('start_recording');
         var stopRecordingBtn = document.getElementById('stop_recording');
-        
-    
-        startRecordingBtn.addEventListener('click', function() {
-            $.get("/start_recording", function(data) {
+        var messageDiv = document.getElementById('message');
+
+        startRecordingBtn.addEventListener('click', function () {
+            $.get("/start_recording", function (data) {
                 console.log(data);
                 video.src = "{{ url_for('video') }}";
-                
+                showMessage("Recording started");
             });
         });
-    
-        stopRecordingBtn.addEventListener('click', function() {
-            $.get("/stop_recording", function(data) {
+
+        stopRecordingBtn.addEventListener('click', function () {
+            $.get("/stop_recording", function (data) {
                 console.log(data);
                 video.src = "";
+                showMessage("Recording stopped and Saved");
             });
         });
+
+        function showMessage(message) {
+            messageDiv.innerHTML = message;
+            setTimeout(function () {
+                messageDiv.innerHTML = "";
+            }, 3000); // Clear message after 3 seconds
+        }
     </script>
 </body>
 

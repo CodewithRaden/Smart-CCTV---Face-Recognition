@@ -34,12 +34,7 @@
   display: flex;
   align-items: center;
 }
-.menu-icon{
-  width: 4.5%;
-  height: 6vh;
-  margin-top: 5px;
-  padding-left: 15px;
-}
+
 nav{
   flex: 1;
   text-align: right;
@@ -55,12 +50,23 @@ nav ul li a{
   font-size: 13px;
   text-transform: uppercase;
 }
-nav ul li a:hover{
-    color: skyblue; 
-    border-bottom: 2px solid skyblue; 
-    transition: color 0.5s, border-bottom 0.2s;
-    font-size: 15px;
-    font-weight: bolder;
+.navbar ul li:nth-child(1) a:hover,
+.navbar ul li:nth-child(2) a:hover,
+.navbar ul li:nth-child(3) a:hover,
+.navbar ul li:nth-child(4) a:hover {
+  color: skyblue;
+  border-bottom: 2px solid skyblue;
+  transition: color 0.5s, border-bottom 0.2s;
+  font-size: 15px;
+  font-weight: bolder;
+}
+
+.navbar ul li:nth-child(5) a:hover {
+  color: coral;
+  border-bottom: 2px solid coral;
+  transition: color 0.5s, border-bottom 0.2s;
+  font-size: 15px;
+  font-weight: bolder;
 }
 
 /* nav end */
@@ -68,7 +74,7 @@ nav ul li a:hover{
 h1{
   margin-left: 10px;
   font-size: 20px;
-  letter-spacing: 2px;
+  color: white;
 }
 
 h2{
@@ -174,7 +180,7 @@ main.table .wrapper .content{
   width: 100%;
   background: linear-gradient(135deg, #0eeed8 0%,#9658fe 100%);
   color: antiquewhite;
-  padding: 8px 0;
+  padding: 0px 0;
   font-size: 18px;
 
   border-bottom-left-radius: 10px;
@@ -186,9 +192,9 @@ main.table .wrapper .content{
 .table2 {
 
     width: 380px;
-    min-width:27% ;
+    min-width:30% ;
     background-color: #fff5;
-    margin-left: 10px;
+    margin-left:25% ;
 
     backdrop-filter: blur(7px);
     box-shadow: 0 .4rem .8rem #0005;
@@ -247,11 +253,15 @@ input[type="submit"] {
   border-radius: 20px;
   margin-top: 10px ;
   margin-left: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   cursor: pointer;
  
   /* Add a smooth transition for the background color */
   transition: background-color 0.3s ease-in-out;
+ }
+
+ #fileinput{
+  background: #00ffff;
  }
  
  input[type="submit"]:hover {
@@ -277,6 +287,7 @@ input[type="file"] {
 }
 
 .notif {
+  display: none;
   margin-left: 20px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -306,4 +317,11 @@ input[type="file"] {
   transition: 0.2s;
   background: linear-gradient(135deg, #ff0000 0%,#3bee0e 100%) ;
 
+}
+
+#fileInput::-webkit-file-upload-button{
+  margin-left: 10px;
+  border-radius: 1dvh;
+  cursor: pointer;
+  font-weight: 100;
 }

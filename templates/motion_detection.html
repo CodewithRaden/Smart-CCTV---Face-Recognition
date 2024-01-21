@@ -88,13 +88,11 @@
         function showCamera() {
             document.getElementById("date-clock").style.display = "none";
             document.getElementById("camera-container").style.display = "block";
-
-            // Set a timeout to close the camera after 10 seconds
-            timeoutId = setTimeout(function () {
+s
+            timeoutId = setTimeout(function () { // close cam timeout
                 closeCamera();
             }, 10000);
 
-            // Hardcoded camera feed URL
             document.getElementById("camera-feed").src = "{{ url_for('video_feed_face') }}";
         }
 
@@ -103,25 +101,21 @@
             document.getElementById("date-clock").style.display = "block";
         }
 
-        // Initial call to show the clock when the page loads
         showClock();
 
-        // Add the following function to handle motion detection events
         socket.on('motion_detected', function () {
-            // Clear previous timeout
             clearTimeout(timeoutId);
             showCamera();
         });
 
-        // Add the following function to handle no motion detected events
+
         socket.on('no_motion_detected', function () {
-            // Set a timeout to show the clock after 10 seconds (adjust the time as needed)
             timeoutId = setTimeout(function () {
                 showClock();
             }, 10000);
         });
 
-        // Function to update the date and time
+    
         function updateDateTime() {
             var now = new Date();
             var dateClock = document.getElementById("date-clock");

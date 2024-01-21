@@ -101,6 +101,39 @@
     // Trigger the function when file input changes
     document.querySelector('#fileInput').addEventListener('change', displayFileName);
 
+    document.addEventListener('DOMContentLoaded', function () {
+        // Display notification if there are messages
+        const messages = document.querySelector('.notif p span').textContent;
+        if (messages) {
+            displayNotification(messages);
+        }
+    });
+
+    function displayNotification(message) {
+        const notification = document.querySelector('.notif');
+        const notificationMessage = document.querySelector('.notif p span');
+
+        notificationMessage.textContent = message;
+        notification.style.display = 'block';
+    }
+    
+    function cancelFileSelection() {
+        const fileInput = document.querySelector('#fileInput');
+        const preview = document.querySelector('#preview-image');
+        const fileNameDisplay = document.querySelector('#file-name-display');
+
+        fileInput.value = ''; 
+        preview.src = ''; 
+        fileNameDisplay.textContent = '';
+    }
+
+    document.querySelector('#fileInput').addEventListener('change', previewFile);
+    document.querySelector('#fileInput').addEventListener('change', displayFileName);
+
+    // Add event listener to cancel button
+    document.querySelector('#cancel-btn').addEventListener('click', cancelFileSelection);
+
+    
 </script>
 
 </body>

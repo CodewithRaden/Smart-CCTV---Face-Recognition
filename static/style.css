@@ -94,8 +94,7 @@ p{
 /* custom list start */
 
 .custom-list {
-    list-style: none; /* Remove default list item marker */
-     /* Add some left padding for the image */
+    list-style: none;
     text-decoration: none;
     margin-top: 20px;
     margin-left: 20px;
@@ -122,17 +121,14 @@ p{
 }
 
 .custom-list li p {
-    /* Add some styles to the text within the list item */
-    /* Adjust this based on your design */
     margin: 5px 0;
 }
 
-/* custom list end */
 
 
 /* tabel start */
 main.table {
-    margin-top: 0px;
+    margin-top: 10px;
     margin-left: 10%;
     width: 85%;
     max-height: 500px;
@@ -163,7 +159,6 @@ main.table {
 .table_body li {
     font-size: 20px;
 }
-
 
 button{
     text-decoration: none;

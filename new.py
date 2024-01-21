@@ -9,8 +9,8 @@ import face_recognition
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO
-import RPi.GPIO as GPIO
-import time
+# import RPi.GPIO as GPIO
+from threading import Timer
 
 
 app = Flask(__name__)
@@ -21,7 +21,7 @@ app.secret_key = 'alter'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'admin'
+app.config['MYSQL_PASSWORD'] = '' #ubah sesuai device / hardware (rasberi : "admin")
 app.config['MYSQL_DB'] = 'muak_db'
 
 mysql = MySQL(app)
@@ -58,46 +58,46 @@ class Database: # method untuk cek data admin yg ada didalam database
             return None
             
 
-class CameraSingleton: # instance satu kamera dan method untuk mendapatkan instance camera
+class Camera: # instance satu kamera dan method untuk instance camera
     _instance = None
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(CameraSingleton, cls).__new__(cls)
-            cls._instance.camera = cv2.VideoCapture(0,cv2.CAP_V4L2) #backend =  cv2.CAP_V4L2, cv2.CAP_GSTREAMER
-            new_width = 256 #cam resolusi
-            new_height = 256 #cam resolusi
-            cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
-            cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
+            cls._instance = super(Camera, cls).__new__(cls)
+            cls._instance.camera = cv2.VideoCapture(0) #backend =  cv2.CAP_V4L2, cv2.CAP_GSTREAMER
+            width = 256 #cam resolusi
+            height = 256 #cam resolusi
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         return cls._instance
 
     def get_camera(self):
         return self.camera
 
-class RecordingThread(threading.Thread): # thread untuk video record dan video writer
+class RecordingThread(threading.Thread): # thread (eksekusi pararel) untuk video record dan video writer
     def __init__(self, camera, output_folder):
         threading.Thread.__init__(self)
         self.isRunning = True
         self.cap = camera
         self.output_folder = output_folder
-        self.out = self.initialize_video_writer()
+        self.out = self.video_writer()
 
-    def initialize_video_writer(self):
+    def video_writer(self):
         try:
             now = datetime.now()
             timestamp = now.strftime("%Y%m%d_%H%M%S")
-            filename = f"{timestamp}.avi"
+            filename = f"{timestamp}.mp4"
             filepath = os.path.join(self.output_folder, filename)
 
             width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+            fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
             return cv2.VideoWriter(filepath, fourcc, 20.0, (width, height))
         except Exception as error:
-            print(f"Error initializing video writer: {error}")
+            print(f"Error Writing Video Data: {error}")
             return None
 
-    def run(self):
+    def run(self): #overrun metod run di thread class
         while self.isRunning:
             ret, frame = self.cap.read()
             if ret:
@@ -114,18 +114,20 @@ class RecordingThread(threading.Thread): # thread untuk video record dan video w
         self.out = None
 
 
-class VideoCamera(object): # video camera untuk handle streaming dan recording
+
+class VideoCamera(object):
     def __init__(self, output_folder):
-        self.camera_singleton = CameraSingleton()
+        self.camera_single = Camera()
         self.is_record = False
-        self.recordingThread = None
+        self.recording_thread = None
         self.output_folder = output_folder
+        self.lock = threading.Lock()
 
     def __del__(self):
         pass
 
     def get_frame(self):
-        ret, frame = self.camera_singleton.get_camera().read()
+        ret, frame = self.camera_single.get_camera().read()
 
         if ret:
             ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
@@ -134,24 +136,34 @@ class VideoCamera(object): # video camera untuk handle streaming dan recording
             return None
 
     def start_record(self):
-        self.is_record = True
-        self.recordingThread = RecordingThread(self.camera_singleton.get_camera(), self.output_folder)
-        self.recordingThread.start()
+        with self.lock:
+            if not self.is_record:
+                self.is_record = True
+                self.recording_thread = RecordingThread(self.camera_single.get_camera(), self.output_folder) #instace Recording Class
+                self.recording_thread.start()
 
     def stop_record(self):
-        self.is_record = False
+        with self.lock: # with lock untuk memastikan atomicity (semuanya selesai)
+            if self.is_record:
+                self.is_record = False
 
-        if self.recordingThread is not None:
-            self.recordingThread.stop()
+                if self.recording_thread is not None:
+                    self.recording_thread.stop()
 
-            try:
-                self.recordingThread.join(timeout=5)
-            except RuntimeError:
-                pass
+                    try:
+                        self.recording_thread.join(timeout=5)
+                    except RuntimeError:
+                        pass
 
-            del self.recordingThread
-            
-video_camera = VideoCamera("static/recorded_videos")
+                    del self.recording_thread
+
+video_camera = VideoCamera("static/recorded_videos") # instance VideoCamera class
+
+def star_recorded_video():
+    print("Recording started!")
+
+def save_recorded_video():
+    print("Recording saved!")
 
 
 def before_request():
@@ -164,7 +176,6 @@ def before_request():
 def load_known_faces(directory):
     known_images = []
     known_names = []
-
     try:
         for filename in os.listdir(directory):
             if filename.endswith(".jpg") or filename.endswith(".jpeg"):
@@ -253,14 +264,8 @@ def profile():
         return redirect(url_for('login'))
     
     
-camera_singleton = CameraSingleton()
-camera = camera_singleton.get_camera()
-
-new_width = 256
-new_height = 256
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
-
+camera_single = Camera() # instace class camera for camera use
+camera = camera_single.get_camera()
 font = cv2.FONT_HERSHEY_DUPLEX
 
 @app.route('/facerecognition')
@@ -269,9 +274,21 @@ def facerecognition():
         return render_template('facerecognition.html')
     else:
         return redirect(url_for('login'))
+    
+def generate_frames(): # buat streaming video tanpa face recog
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+        
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
-def gen_frames_face():
+def gen_frames_face(): # buat streaming video with face recog
     while True:
         ret, frame = camera.read()
 
@@ -290,6 +307,7 @@ def gen_frames_face():
 
             if name == "Unknown":
                 socketio.emit('notification', {'message': 'Unknown face detected'}, namespace='/facerecognition')
+                break
 
             cv2.rectangle(frame, (left, top), (right, bottom), (255, 255, 255), 2)
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 0, 0), 1)
@@ -299,22 +317,21 @@ def gen_frames_face():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + data + b'\r\n\r\n')
 
-@app.route('/video_feed_face')
-def video_feed_face():
-    return Response(gen_frames_face(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/videosource')
+def video():
+    if 'loggedin' in session:
+        return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        return redirect(url_for('login'))
     
-def generate_frames():
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-        
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+@app.route('/video_feed_face')
+def video_feed_face(): #response video with face recog
+    if 'loggedin' in session:
+        return Response(gen_frames_face(),mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        return redirect(url_for('login'))
+    
+
         
 @app.route('/home')
 def home():
@@ -329,14 +346,8 @@ def live():
         return render_template('livestream.html')
     else:
         return redirect(url_for('login'))
-        
-@app.route('/videosource')
-def video():
-    if 'loggedin' in session:
-        return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-    else:
-        return redirect(url_for('login'))
 
+    
 @app.route('/manual')
 def manual():
     if 'loggedin' in session:
@@ -359,16 +370,20 @@ def coming_record():
     else:
         return redirect(url_for('login'))
     
+
     
 @app.route('/start_recording')
 def start_recording():
     video_camera.start_record()
+    star_recorded_video()
     return jsonify({'status': 'Recording started'})
 
 @app.route('/stop_recording')
 def stop_recording():
     video_camera.stop_record()
-    return jsonify({'status': 'Recording stopped'})
+    save_recorded_video()
+    return jsonify({'status': 'Recording stopped and saved'})
+
 
 @app.route('/recorded_videos')
 def recorded_videos():
@@ -379,7 +394,6 @@ def recorded_videos():
     else:
         return redirect(url_for('login'))
     
-
 
 @app.route('/play_video/<filename>') 
 def play_video(filename):
@@ -421,8 +435,8 @@ def update_face_model(face_image_path):
             return encoding[0]
         else:
             return None
-    except Exception as e:
-        print(f"Error updating face model: {e}")
+    except Exception as error:
+        print(f"Error updating face model: {error}")
         return None
 
 
@@ -435,9 +449,9 @@ def handle_disconnect():
     print('Client disconnected')
     
     
-PIR_PIN = 4
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(PIR_PIN, GPIO.IN)
+# PIR_PIN = 4
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setup(PIR_PIN, GPIO.IN)
 
 
 @app.route('/motion_detection')
@@ -446,29 +460,89 @@ def motion_detection():
         return render_template('motion_detection.html')
     else:
         return redirect(url_for('login'))
+        
 
-def motion_detection_thread():
+
+motion_detection_active = False
+start_recording_flag = False
+
+@app.route('/motion_detection_toggle')
+def motion_detection_toggle():
+    global motion_detection_active
+    motion_detection_active = not motion_detection_active
+    return jsonify({'status': 'Motion detection toggled'})
+
+
+def stop_recording_and_close_camera():
+    video_camera.stop_record()
+    save_recorded_video()
+    socketio.emit('camera_closed', namespace='/facerecognition')
+
+@app.route('/automation_mode')
+def automation_mode():
+    global motion_detection_active
+    motion_detection_active = True
+    return render_template('motion_detection.html')  
+
+def check_unknown_face():
+    # Use face recognition library to check for unknown faces
+    ret, frame = camera.read()
+    face_locations = face_recognition.face_locations(frame)
+    face_encodings = face_recognition.face_encodings(frame, face_locations)
+
+    for face_encoding in face_encodings:
+        matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
+
+        if not any(matches):
+            return True  # Unknown face detected
+
+    return False
+
+# def motion_detection_thread():
+    motion_detected = False
+    unknown_face_detected = False
+    global start_recording_flag
+
     while True:
-        if GPIO.input(PIR_PIN):
+        if motion_detection_active and GPIO.input(PIR_PIN):
             # Motion detected
-            print("Motion detected!")
-            video_camera.start_record()
-            socketio.emit('notification', {'message': 'Motion detected!'}, namespace='/facerecognition')
-            time.sleep(5)  # Adjust the time as needed
-            video_camera.stop_record()
+            motion_detected = True
+            socketio.emit('motion_detected', namespace='/facerecognition')
+
+            # Check for unknown face
+            if check_unknown_face():
+                unknown_face_detected = True
+                start_recording_flag = True
         else:
             # No motion
-            print("No motion detected.")
-            socketio.emit('notification', {'message': 'No motion detected.'}, namespace='/facerecognition')
-            time.sleep(1)
-            break
-            
-            
+            motion_detected = False
+            unknown_face_detected = False
+            start_recording_flag = False
+            socketio.emit('no_motion_detected', namespace='/facerecognition')
 
-motion_thread = threading.Thread(target=motion_detection_thread)
-motion_thread.start()
+        # Check if recording should be started
+        if start_recording_flag and unknown_face_detected:
+            video_camera.start_record()
+            start_recording_flag = False
 
+            # Set a timer to stop recording after 10 seconds
+            recording_timer = Timer(10, stop_recording_and_close_camera)
+            recording_timer.start()
 
-    
+        # Send motion status to the frontend
+        socketio.emit('motion_status', {'motion_detected': motion_detected}, namespace='/facerecognition')
+
+        # Reset unknown_face_detected for the next iteration
+        unknown_face_detected = False
+
+@app.route('/go_back')
+def go_back():
+    global motion_detection_active
+    motion_detection_active = False
+    return redirect(url_for('home')) 
+
+# motion_thread = threading.Thread(target=motion_detection_thread)
+# motion_thread.start()
+  
 if __name__ == '__main__':
     app.run(debug=True)

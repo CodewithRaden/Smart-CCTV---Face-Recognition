@@ -21,7 +21,7 @@ app.secret_key = 'alter'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_PASSWORD'] = '' #ubah sesuai device / hardware (rasberi : "admin")
 app.config['MYSQL_DB'] = 'muak_db'
 
 mysql = MySQL(app)
@@ -58,30 +58,30 @@ class Database: # method untuk cek data admin yg ada didalam database
             return None
             
 
-class CameraSingleton: # instance satu kamera dan method untuk mendapatkan instance camera
+class Camera: # instance satu kamera dan method untuk instance camera
     _instance = None
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(CameraSingleton, cls).__new__(cls)
+            cls._instance = super(Camera, cls).__new__(cls)
             cls._instance.camera = cv2.VideoCapture(0) #backend =  cv2.CAP_V4L2, cv2.CAP_GSTREAMER
-            new_width = 256 #cam resolusi
-            new_height = 256 #cam resolusi
-            cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
-            cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
+            width = 256 #cam resolusi
+            height = 256 #cam resolusi
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         return cls._instance
 
     def get_camera(self):
         return self.camera
 
-class RecordingThread(threading.Thread): # thread untuk video record dan video writer
+class RecordingThread(threading.Thread): # thread (eksekusi pararel) untuk video record dan video writer
     def __init__(self, camera, output_folder):
         threading.Thread.__init__(self)
         self.isRunning = True
         self.cap = camera
         self.output_folder = output_folder
-        self.out = self.initialize_video_writer()
+        self.out = self.video_writer()
 
-    def initialize_video_writer(self):
+    def video_writer(self):
         try:
             now = datetime.now()
             timestamp = now.strftime("%Y%m%d_%H%M%S")
@@ -94,10 +94,10 @@ class RecordingThread(threading.Thread): # thread untuk video record dan video w
             fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
             return cv2.VideoWriter(filepath, fourcc, 20.0, (width, height))
         except Exception as error:
-            print(f"Error initializing video writer: {error}")
+            print(f"Error Writing Video Data: {error}")
             return None
 
-    def run(self):
+    def run(self): #overrun metod run di thread class
         while self.isRunning:
             ret, frame = self.cap.read()
             if ret:
@@ -114,10 +114,10 @@ class RecordingThread(threading.Thread): # thread untuk video record dan video w
         self.out = None
 
 
-# Modify the VideoCamera class
+
 class VideoCamera(object):
     def __init__(self, output_folder):
-        self.camera_singleton = CameraSingleton()
+        self.camera_single = Camera()
         self.is_record = False
         self.recording_thread = None
         self.output_folder = output_folder
@@ -127,7 +127,7 @@ class VideoCamera(object):
         pass
 
     def get_frame(self):
-        ret, frame = self.camera_singleton.get_camera().read()
+        ret, frame = self.camera_single.get_camera().read()
 
         if ret:
             ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
@@ -139,11 +139,11 @@ class VideoCamera(object):
         with self.lock:
             if not self.is_record:
                 self.is_record = True
-                self.recording_thread = RecordingThread(self.camera_singleton.get_camera(), self.output_folder)
+                self.recording_thread = RecordingThread(self.camera_single.get_camera(), self.output_folder) #instace Recording Class
                 self.recording_thread.start()
 
     def stop_record(self):
-        with self.lock:
+        with self.lock: # with lock untuk memastikan atomicity (semuanya selesai)
             if self.is_record:
                 self.is_record = False
 
@@ -157,10 +157,12 @@ class VideoCamera(object):
 
                     del self.recording_thread
 
-video_camera = VideoCamera("static/recorded_videos")
+video_camera = VideoCamera("static/recorded_videos") # instance VideoCamera class
+
+def star_recorded_video():
+    print("Recording started!")
 
 def save_recorded_video():
-    # Replace this with your actual logic to save the recorded video
     print("Recording saved!")
 
 
@@ -174,7 +176,6 @@ def before_request():
 def load_known_faces(directory):
     known_images = []
     known_names = []
-
     try:
         for filename in os.listdir(directory):
             if filename.endswith(".jpg") or filename.endswith(".jpeg"):
@@ -263,14 +264,8 @@ def profile():
         return redirect(url_for('login'))
     
     
-camera_singleton = CameraSingleton()
-camera = camera_singleton.get_camera()
-
-new_width = 256
-new_height = 256
-camera.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
-camera.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
-
+camera_single = Camera() # instace class camera for camera use
+camera = camera_single.get_camera()
 font = cv2.FONT_HERSHEY_DUPLEX
 
 @app.route('/facerecognition')
@@ -279,8 +274,7 @@ def facerecognition():
         return render_template('facerecognition.html')
     else:
         return redirect(url_for('login'))
-
-
+    
 def gen_frames_face():
     while True:
         ret, frame = camera.read()
@@ -300,7 +294,8 @@ def gen_frames_face():
 
             if name == "Unknown":
                 socketio.emit('notification', {'message': 'Unknown face detected'}, namespace='/facerecognition')
-
+                break
+            
             cv2.rectangle(frame, (left, top), (right, bottom), (255, 255, 255), 2)
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 0, 0), 1)
 
@@ -325,6 +320,13 @@ def generate_frames():
         
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    
+@app.route('/videosource')
+def video():
+    if 'loggedin' in session:
+        return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        return redirect(url_for('login'))
         
 @app.route('/home')
 def home():
@@ -339,14 +341,8 @@ def live():
         return render_template('livestream.html')
     else:
         return redirect(url_for('login'))
-        
-@app.route('/videosource')
-def video():
-    if 'loggedin' in session:
-        return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-    else:
-        return redirect(url_for('login'))
 
+    
 @app.route('/manual')
 def manual():
     if 'loggedin' in session:
@@ -369,10 +365,12 @@ def coming_record():
     else:
         return redirect(url_for('login'))
     
+
     
 @app.route('/start_recording')
 def start_recording():
     video_camera.start_record()
+    star_recorded_video()
     return jsonify({'status': 'Recording started'})
 
 @app.route('/stop_recording')
@@ -380,6 +378,7 @@ def stop_recording():
     video_camera.stop_record()
     save_recorded_video()
     return jsonify({'status': 'Recording stopped and saved'})
+
 
 @app.route('/recorded_videos')
 def recorded_videos():
@@ -390,7 +389,6 @@ def recorded_videos():
     else:
         return redirect(url_for('login'))
     
-
 
 @app.route('/play_video/<filename>') 
 def play_video(filename):
@@ -432,8 +430,8 @@ def update_face_model(face_image_path):
             return encoding[0]
         else:
             return None
-    except Exception as e:
-        print(f"Error updating face model: {e}")
+    except Exception as error:
+        print(f"Error updating face model: {error}")
         return None
 
 
@@ -459,7 +457,7 @@ def motion_detection():
         return redirect(url_for('login'))
         
 
-# Add a global flag to indicate whether motion detection is active
+
 motion_detection_active = False
 start_recording_flag = False
 
@@ -479,7 +477,7 @@ def stop_recording_and_close_camera():
 def automation_mode():
     global motion_detection_active
     motion_detection_active = True
-    return render_template('motion_detection.html')  # Assuming you have a template for Automation Mode
+    return render_template('motion_detection.html')  
 
 def check_unknown_face():
     # Use face recognition library to check for unknown faces

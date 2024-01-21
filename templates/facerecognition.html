@@ -76,44 +76,32 @@
     <div id="notification-container"></div>
 
     <script>
-        var video = document.getElementById('video');
-        var socket = io.connect('{{ url_for('facerecognition') }}'); // konek ke sokeio
-
-
+        var socket = io.connect('{{ url_for('facerecognition') }}');
+    
+        var notificationSent = false;
+    
         socket.on('notification', function(data) {
-            // dispaly notif
-            displayNotification(data.message);
+            if (!notificationSent) {
+                displayNotification(data.message);
+                notificationSent = true;
+            }
         });
-
+    
         function displayNotification(message) {
-            // create notif element
             var notification = document.createElement('div');
             notification.className = 'notification';
             notification.innerText = message;
-
-            // add notif to container
+    
             var notificationContainer = document.getElementById('notification-container');
             notificationContainer.appendChild(notification);
-
-            // remove after 5 sec
+    
             setTimeout(function() {
                 notification.remove();
             }, 5000);
         }
-        startRecordingBtn.addEventListener('click', function() {
-            $.get("/start_recording", function(data) {
-                console.log(data);
-                video.src = "{{ url_for('video_feed_face') }}";
-            });
-        });
+    </script>
+    
 
-        stopRecordingBtn.addEventListener('click', function() {
-            $.get("/stop_recording", function(data) {
-                console.log(data);
-                
-                video.src = "";
-            });
-        });
     </script>
 </body>
 </html>
