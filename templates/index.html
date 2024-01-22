@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart CCTV PNJ</title>
+    <title>Smart CCTV Home</title>
     <link rel="stylesheet" href="{{url_for('static',filename='index.css')}}">
-    <link href="{{url_for('static',filename='shortcut.png')}}" rel='shortcut icon'>
 </head>
 <body>
-    
-
     <!-- navbar start -->
     <div class="container">
         <div class="navbar">
@@ -30,19 +27,19 @@
         <div class="row">
     
             <div class="col">
+                <h2></h2>
                 <h1 class="h1">Welcome Operator</h1>
                 <p> now you acessing smart cctv website.    this website 
                     provides some features such as livestream, recording, 
                     face detection , and see recording. <br> 
                     <br><br>you can access menu for manual or automation with button bellow </p>
                     <button type="button" class="manual-btn" ><a href="{{url_for('manual')}}">Manual</a></button>
-                    <button type="button"><a href="{{url_for('coming')}}">Automatic</button>
+                    <button type="button"><a href="{{url_for('automation_mode')}}">Automatic</button>
 
                 </div>
             </div>
          
     </div>
-
 </body>
 
 </html>

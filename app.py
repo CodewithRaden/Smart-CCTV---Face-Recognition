@@ -58,17 +58,17 @@ class Database: # method untuk cek data admin yg ada didalam database
             return None
             
 
-class Camera: # instance satu kamera dan method untuk instance camera
+class Camera: # instance satu kamera dan method untuk instance camera, dan memakai patern Singleton
     _instance = None
-    def __new__(cls):
-        if cls._instance is None:
+    def __new__(cls):# metod membuat instance baru kalo gak ada
+        if cls._instance is None:# if belum ada instance then buat instance baru pake super()
             cls._instance = super(Camera, cls).__new__(cls)
             cls._instance.camera = cv2.VideoCapture(0) #backend =  cv2.CAP_V4L2, cv2.CAP_GSTREAMER
             width = 256 #cam resolusi
             height = 256 #cam resolusi
             cls._instance.camera.set(cv2.CAP_PROP_FRAME_WIDTH, width)
             cls._instance.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        return cls._instance
+        return cls._instance 
 
     def get_camera(self):
         return self.camera
@@ -88,10 +88,10 @@ class RecordingThread(threading.Thread): # thread (eksekusi pararel) untuk video
             filename = f"{timestamp}.mp4"
             filepath = os.path.join(self.output_folder, filename)
 
-            width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)) #ngiku res camera
             height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-            fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+            fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')# forma FourCC untuk format video MP4
             return cv2.VideoWriter(filepath, fourcc, 20.0, (width, height))
         except Exception as error:
             print(f"Error Writing Video Data: {error}")
@@ -99,23 +99,23 @@ class RecordingThread(threading.Thread): # thread (eksekusi pararel) untuk video
 
     def run(self): #overrun metod run di thread class
         while self.isRunning:
-            ret, frame = self.cap.read()
+            ret, frame = self.cap.read() #baca frame kamera
             if ret:
-                self.out.write(frame)
+                self.out.write(frame) #di write framenya buat video
 
-        self.out.release()
+        self.out.release() #di release pas thread stop
 
-    def stop(self):
+    def stop(self): #metod berhentiin thrread
         self.isRunning = False
         self.join(timeout=5)
 
-    def __del__(self):
-        self.out.release()
-        self.out = None
+    def __del__(self): #metod destruktor
+        self.out.release() #release objek video writer
+        self.out = None #help garbage collect
 
 
 
-class VideoCamera(object):
+class VideoCamera:
     def __init__(self, output_folder):
         self.camera_single = Camera()
         self.is_record = False
@@ -178,7 +178,7 @@ def load_known_faces(directory):
     known_names = []
     try:
         for filename in os.listdir(directory):
-            if filename.endswith(".jpg") or filename.endswith(".jpeg"):
+            if filename.endswith(".jpg") or filename.endswith(".jpeg")or filename.endswith(".png"):
                 path = os.path.join(directory, filename)
                 image = face_recognition.load_image_file(path)
                 encoding = face_recognition.face_encodings(image)
@@ -275,7 +275,7 @@ def facerecognition():
     else:
         return redirect(url_for('login'))
     
-def gen_frames_face():
+def gen_frames_face(): #frame face recog
     while True:
         ret, frame = camera.read()
 
@@ -349,23 +349,7 @@ def manual():
         return render_template("manual.html")
     else:
         return redirect(url_for('login'))
-    
-@app.route('/coming')
-def coming():
-    if 'loggedin' in session:
-        return render_template('Comingsoon.html')
-    else:
-        return redirect(url_for('login'))
-
-
-@app.route('/coming_record')
-def coming_record():
-    if 'loggedin' in session:
-        return render_template('Comingsoon_record.html')
-    else:
-        return redirect(url_for('login'))
-    
-
+      
     
 @app.route('/start_recording')
 def start_recording():
@@ -394,7 +378,19 @@ def recorded_videos():
 def play_video(filename):
     videos_folder = 'static/recorded_videos'
     video_path = os.path.join(videos_folder, filename)
-    return send_file(video_path, mimetype='video/avi', as_attachment=False)
+    return send_file(video_path, mimetype='video/avi', as_attachment=False)\
+
+def update_face_model(face_image_path):
+    try:
+        image = face_recognition.load_image_file(face_image_path)
+        encoding = face_recognition.face_encodings(image)
+        if encoding and len(encoding) > 0:
+            return encoding[0]
+        else:
+            return None
+    except Exception as error:
+        print(f"Error updating face model: {error}")
+        return None
 
 
 @app.route('/add_face', methods=['GET', 'POST'])
@@ -422,51 +418,14 @@ def add_face():
 
     return render_template('add_face.html')
 
-def update_face_model(face_image_path):
-    try:
-        image = face_recognition.load_image_file(face_image_path)
-        encoding = face_recognition.face_encodings(image)
-        if encoding and len(encoding) > 0:
-            return encoding[0]
-        else:
-            return None
-    except Exception as error:
-        print(f"Error updating face model: {error}")
-        return None
-
-
-@socketio.on('connect', namespace='/facerecognition')
-def handle_connect():
-    print('Client connected')
-
-@socketio.on('disconnect', namespace='/facerecognition')
-def handle_disconnect():
-    print('Client disconnected')
     
-    
+#config pin  
 # PIR_PIN = 4
 # GPIO.setmode(GPIO.BCM)
 # GPIO.setup(PIR_PIN, GPIO.IN)
 
-
-@app.route('/motion_detection')
-def motion_detection():
-    if 'loggedin' in session:
-        return render_template('motion_detection.html')
-    else:
-        return redirect(url_for('login'))
-        
-
-
 motion_detection_active = False
 start_recording_flag = False
-
-@app.route('/motion_detection_toggle')
-def motion_detection_toggle():
-    global motion_detection_active
-    motion_detection_active = not motion_detection_active
-    return jsonify({'status': 'Motion detection toggled'})
-
 
 def stop_recording_and_close_camera():
     video_camera.stop_record()
@@ -477,10 +436,13 @@ def stop_recording_and_close_camera():
 def automation_mode():
     global motion_detection_active
     motion_detection_active = True
-    return render_template('motion_detection.html')  
+    if 'loggedin' in session:
+        return render_template('motion_detection.html')
+    else:
+        return redirect(url_for('login'))
+    
 
 def check_unknown_face():
-    # Use face recognition library to check for unknown faces
     ret, frame = camera.read()
     face_locations = face_recognition.face_locations(frame)
     face_encodings = face_recognition.face_encodings(frame, face_locations)
@@ -489,7 +451,7 @@ def check_unknown_face():
         matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
 
         if not any(matches):
-            return True  # Unknown face detected
+            return True  # unknown face detected
 
     return False
 
@@ -500,38 +462,38 @@ def check_unknown_face():
 
     while True:
         if motion_detection_active and GPIO.input(PIR_PIN):
-            # Motion detected
+            # motion detected
             motion_detected = True
             socketio.emit('motion_detected', namespace='/facerecognition')
 
-            # Check for unknown face
+            # cek unknown face
             if check_unknown_face():
                 unknown_face_detected = True
                 start_recording_flag = True
         else:
-            # No motion
+            # no motion
             motion_detected = False
             unknown_face_detected = False
             start_recording_flag = False
             socketio.emit('no_motion_detected', namespace='/facerecognition')
 
-        # Check if recording should be started
+        # cek if recording start
         if start_recording_flag and unknown_face_detected:
             video_camera.start_record()
             start_recording_flag = False
 
-            # Set a timer to stop recording after 10 seconds
+            # timer 10 sec cam close
             recording_timer = Timer(10, stop_recording_and_close_camera)
             recording_timer.start()
 
         # Send motion status to the frontend
         socketio.emit('motion_status', {'motion_detected': motion_detected}, namespace='/facerecognition')
 
-        # Reset unknown_face_detected for the next iteration
+        # rese for the next iteration
         unknown_face_detected = False
 
 @app.route('/go_back')
-def go_back():
+def go_back(): # back and stop
     global motion_detection_active
     motion_detection_active = False
     return redirect(url_for('home')) 

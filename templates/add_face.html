@@ -96,13 +96,10 @@
     }
     //display filename end
 
-    // Trigger the function when file input changes
     document.querySelector('#fileInput').addEventListener('change', previewFile);
-    // Trigger the function when file input changes
     document.querySelector('#fileInput').addEventListener('change', displayFileName);
-
     document.addEventListener('DOMContentLoaded', function () {
-        // Display notification if there are messages
+    
         const messages = document.querySelector('.notif p span').textContent;
         if (messages) {
             displayNotification(messages);
@@ -129,8 +126,6 @@
 
     document.querySelector('#fileInput').addEventListener('change', previewFile);
     document.querySelector('#fileInput').addEventListener('change', displayFileName);
-
-    // Add event listener to cancel button
     document.querySelector('#cancel-btn').addEventListener('click', cancelFileSelection);
 
     
