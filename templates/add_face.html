@@ -27,6 +27,7 @@
           <div class="wrapper">   
                 <div class="content">
                 </div>
+                <div id="cancel-btn"><i class="fas fa-times"></i></div>
                 <div class="image-preview"><img id="preview-image" src=""></div>
                 <div class="file-name" id="file-name-display"></div>
         
@@ -95,13 +96,10 @@
     }
     //display filename end
 
-    // Trigger the function when file input changes
     document.querySelector('#fileInput').addEventListener('change', previewFile);
-    // Trigger the function when file input changes
     document.querySelector('#fileInput').addEventListener('change', displayFileName);
-
     document.addEventListener('DOMContentLoaded', function () {
-        // Display notification if there are messages
+    
         const messages = document.querySelector('.notif p span').textContent;
         if (messages) {
             displayNotification(messages);
@@ -116,6 +114,20 @@
         notification.style.display = 'block';
     }
     
+    function cancelFileSelection() {
+        const fileInput = document.querySelector('#fileInput');
+        const preview = document.querySelector('#preview-image');
+        const fileNameDisplay = document.querySelector('#file-name-display');
+
+        fileInput.value = ''; 
+        preview.src = ''; 
+        fileNameDisplay.textContent = '';
+    }
+
+    document.querySelector('#fileInput').addEventListener('change', previewFile);
+    document.querySelector('#fileInput').addEventListener('change', displayFileName);
+    document.querySelector('#cancel-btn').addEventListener('click', cancelFileSelection);
+
     
 </script>
 
